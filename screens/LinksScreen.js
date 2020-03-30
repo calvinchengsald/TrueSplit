@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
   },
   lastOption: {
     borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: '#ffffff',
   },
   optionText: {
     fontSize: 15,
