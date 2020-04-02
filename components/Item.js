@@ -3,7 +3,7 @@ import {   StyleSheet, Text, TouchableOpacity, View,TextInput } from 'react-nati
 // import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import {Icon} from 'react-native-elements'
 
-const Item =  ({item, deleteItem,editItem, editable, panResponder }) => {
+const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFromUser }) => {
 
     
     var shallowItem = {
@@ -15,10 +15,8 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder }) => {
     };
     return (
         
-        <TouchableOpacity style={[styles.item, shallowItem.taxable && styles.itemTaxable, shallowItem.id==='HEADER' && styles.header]}>
-            
+        <View style={[styles.item, shallowItem.taxable && styles.itemTaxable, shallowItem.id==='HEADER' && styles.header]}>
             <View style={styles.itemView}> 
-            
                 {editable? 
                    <React.Fragment>
                        
@@ -26,7 +24,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder }) => {
                             <Icon name='list'></Icon>
                         </View>
                         <View style={[styles.itemElement, styles.flex4]}> 
-                            <TextInput style={styles.itemText} placeholder='Name' placeholderTextColor='#9c9191' defaultValue={shallowItem.name}      onEndEditing={()=> setItemName(shallowItem, editItem) }/>
+                            <TextInput style={styles.itemText} placeholder='Name' placeholderTextColor='#9c9191' defaultValue={shallowItem.name}      onEndEditing={(obj)=> setItemName(obj.nativeEvent.text,shallowItem, editItem) }/>
                         </View>
                         
                         <View style={[styles.itemElement, styles.flex2]}> 
@@ -39,30 +37,42 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder }) => {
                         
                     </React.Fragment> 
                     :
+                    
                     <React.Fragment>
-                        <View style={[styles.itemElement, styles.flex1]}> 
-                            <Icon name='list'></Icon>
-                        </View>
-                        <View style={[styles.itemElement, styles.flex4]}> 
-                            <Text style={styles.itemText}>{shallowItem.name}</Text>
-                        </View>
-                        <View style={[styles.itemElement, styles.flex2]}> 
-                            <Text style={styles.itemText}>{shallowItem.cost}</Text>
-                        </View>
-                        <View style={[styles.itemElement, styles.flex1]}> 
-                            {shallowItem.id ==='HEADER'? 
-                            <Text style={[styles.itemTxText, shallowItem.taxable && styles.itemTxTextTaxable]}>Tax</Text>
-                            :
-                            <Text style={[styles.itemTxText, shallowItem.taxable && styles.itemTxTextTaxable]}>tx</Text>
+                        {shallowItem.id ==='HEADER' ?
+                        <React.Fragment>
+                            <View  style={[styles.itemElement, styles.flex1]}> 
+                                <Icon name='list'></Icon>
+                            </View>
+                            <View style={[styles.itemElement, styles.flex4]}> 
+                                <Text style={styles.itemText}>{shallowItem.name}</Text>
+                            </View>
+                            <View style={[styles.itemElement, styles.flex2]}> 
+                                <Text style={styles.itemText}>{shallowItem.cost}</Text>
+                            </View>
+                            <View style={[styles.itemElement, styles.flex1]}> 
+                                <Text style={[styles.itemTxText, shallowItem.taxable && styles.itemTxTextTaxable]}>Tax</Text>
+                            </View>
+                        </React.Fragment>
+                        :
+                        <React.Fragment>
+                            { deleteItemFromUser !== null &&
+                            <TouchableOpacity  style={[styles.itemElement, styles.flex1]} onPress={() => deleteItemFromUser(shallowItem.id) }> 
+                                <Icon name='remove'></Icon>
+                            </TouchableOpacity>
                             }
-                        </View>
-                        
+                            <View style={[styles.itemElement, styles.flex4]}> 
+                                <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
+                            </View>
+                            <View style={[styles.itemElement, styles.flex2]}> 
+                                <Text style={styles.itemTextSm}>{shallowItem.cost}</Text>
+                            </View>
+                        </React.Fragment>
+                        }
                     </React.Fragment> 
-                }
-                
+                } 
             </View>
-            
-        </TouchableOpacity>
+        </View>
     )
 
     
@@ -87,7 +97,8 @@ const setItemCost = (text, item, editItem) => {
     }
     editItem(item)
 }
-const setItemName = (item ,editItem) => {
+const setItemName = (text,item ,editItem) => {
+    item.name=text;
     editItem(item);
 }
 const setItemTaxable = (item ,editItem) => {
@@ -134,6 +145,9 @@ const styles = StyleSheet.create({
     },
     itemText: {
         fontSize: 15,
+    },
+    itemTextSm: {
+        fontSize: 10,
     },
     itemTxText: {
         textDecorationLine: 'line-through',
