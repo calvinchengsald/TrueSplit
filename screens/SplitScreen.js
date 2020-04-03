@@ -11,6 +11,7 @@ import {Icon} from 'react-native-elements'
 import Draggable from 'react-native-draggable';
 import { render } from 'react-dom';
 import {DRAG_EVENT_SOURCE} from '../constants/DragEventSource';
+import {standardizeNumber } from '../utility/utils'
 
 
 export default class SplitScreen extends Component {
@@ -37,21 +38,21 @@ export default class SplitScreen extends Component {
     }
     billVariables = {
         billSubtotal: 0,
-        billTotal: 0,
-        billTax: 0,
+        billTax: "",
         billTip: 0,
+        billTotal: "",
     }
     constructor(props){
         super(props);
         this.state = {
             items: [
-                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, forceUpdate: 0},
-                {id: uuid(), editable: true, name: 'Sushi', cost: '12.45' , taxable: true, forceUpdate: 0},
-                {id: uuid(), editable: true, name: 'Milk Tea', cost: '4.42', taxable: false, forceUpdate: 0 }
+                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false},
+                {id: uuid(), editable: true, name: 'Sushi', cost: '12.45' , taxable: true, split: false},
+                {id: uuid(), editable: true, name: 'Milk Tea', cost: '4.42', taxable: false, split: false }
             ],
             users: [
                 {id: uuid(), name: 'Calvin', itemList: [], confirmDelete: false},
-                {id: uuid(), name: 'Jenny', itemList: [], confirmDelete: true}
+                {id: uuid(), name: 'Jenny', itemList: [], confirmDelete: false}
             ],
             dragging: false,
             itemIdx: -1,
@@ -74,7 +75,7 @@ export default class SplitScreen extends Component {
                 if(this.dragEventSource === DRAG_EVENT_SOURCE.ITEM){
                     //find which item is being selected
                     this.screenVariables.currentIdx = this.findItemIndexFromY(gestureState.y0);
-                    this.setState({ dragging: true, itemIdx: this.screenVariables.currentIdx});
+                    this.setStateVariable2("dragging", true, "itemIdx", this.screenVariables.currentIdx);
                 }
             },
             onPanResponderMove: (evt, gestureState) => {
@@ -85,7 +86,7 @@ export default class SplitScreen extends Component {
                     //find which user is being hoverd over and highlight them
                     this.screenVariables.userIdx = this.findUserIndexFromXY(gestureState.moveX, gestureState.moveY);
                     if(this.screenVariables.userIdx !== this.state.userIdx) {
-                        this.setStateVaraible("userIdx", this.screenVariables.userIdx);
+                        this.setStateVariable("userIdx", this.screenVariables.userIdx);
                     }
                 }
 
@@ -98,8 +99,9 @@ export default class SplitScreen extends Component {
                 if(this.dragEventSource === DRAG_EVENT_SOURCE.ITEM){
                     //add this item into the user's list
                     if(this.screenVariables.userIdx !== -1 && this.screenVariables.currentIdx !== -1 ){
-                        var updatedUsers = this.state.users
-                        updatedUsers[this.screenVariables.userIdx].itemList.push(this.state.items[this.screenVariables.currentIdx].id);
+                        var updatedUser = this.state.users[this.screenVariables.userIdx]
+                        updatedUser.itemList.push(this.state.items[this.screenVariables.currentIdx].id);
+                        this.editUser(updatedUser)
                     }
                     // hoverd over delete button?
                     else if (this.screenVariables.currentIdx !== -1 && this.findHoverOverDelete(gestureState.moveX,gestureState.moveY)){
@@ -111,7 +113,7 @@ export default class SplitScreen extends Component {
                 // reset all dragging associated variables
                 this.screenVariables.currentIdx  = -1;
                 this.screenVariables.userIdx  = -1;
-                this.setState({ dragging: false, itemIdx: this.screenVariables.currentIdx, userIdx: this.screenVariables.userIdx, users: updatedUsers});
+                this.setStateVariable3("dragging", false, "itemIdx", this.screenVariables.currentIdx, "userIdx" ,this.screenVariables.userIdx );
             },
             onPanResponderTerminate: (evt, gestureState) => {
               
@@ -119,7 +121,7 @@ export default class SplitScreen extends Component {
                 // reset all dragging associated variables
                 this.screenVariables.currentIdx  = -1;
                 this.screenVariables.userIdx  = -1;
-                this.setState({ dragging: false, itemIdx: this.screenVariables.currentIdx, userIdx: this.screenVariables.userIdx});
+                this.setStateVariable3("dragging", false, "itemIdx", this.screenVariables.currentIdx, "userIdx" ,this.screenVariables.userIdx );
             },
             onShouldBlockNativeResponder: (evt, gestureState) => {
               // Returns whether this component should block native components from becoming the JS
@@ -129,11 +131,29 @@ export default class SplitScreen extends Component {
         })
         
     }
-    setStateVaraible = (state, value) => {
-        this.setState({
-            ...this.state,
-            [state] : value
-        })
+    setStateVariable = (state, value) => {
+        var updatedState = this.state;
+        updatedState[state] = value;
+        this.setStateAll(updatedState)
+    }
+    setStateVariable2 = (state, value, state2, value2) => {
+        var updatedState = this.state;
+        updatedState[state] = value;
+        updatedState[state2] = value2;
+        this.setStateAll(updatedState)
+    }
+    setStateVariable3 = (state, value, state2, value2, state3, value3) => {
+        var updatedState = this.state;
+        updatedState[state] = value;
+        updatedState[state2] = value2;
+        updatedState[state3] = value3;
+        this.setStateAll(updatedState)
+    }
+    setStateAll = (state) => {
+            this.setState({...state}, 
+            () => {
+                this.calculateBill()
+            })
     }
 
     // find the source that is initiating this drag
@@ -208,7 +228,42 @@ export default class SplitScreen extends Component {
     }
     
     calculateBill = () => {
-        this.billVariables.billSubtotal;
+        //standardize all the bad values recieved from user
+        this.billVariables.billTax = parseFloat(standardizeNumber(this.billVariables.billTax+""));
+        this.billVariables.billTotal = parseFloat(standardizeNumber(this.billVariables.billTotal+""));
+        //calculate the bill subtotal
+        var billSubtotal = 0.0;
+        this.state.items.map( (item) => {
+            billSubtotal+=parseFloat(item.cost)
+        });
+        this.billVariables.billSubtotal = parseFloat(billSubtotal);
+        //calcualte the tip from the above variables
+        this.billVariables.billTip = parseFloat(this.billVariables.billTotal -this.billVariables.billSubtotal -this.billVariables.billTax);
+        
+
+        // Calcualte everything
+        if (this.allItemsSplit() ) {
+            console.log("all split done")
+            // use real values for calculations
+            this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:this.billVariables.billSubtotal.toFixed(2)
+            this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax.toFixed(2)
+            this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:this.billVariables.billTip.toFixed(2)
+            this.billVariables.billTotal = isNaN(this.billVariables.billTotal)?0:this.billVariables.billTotal.toFixed(2)
+        }
+
+
+        // use display pretty values
+        this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:parseFloat(this.billVariables.billSubtotal).toFixed(2)
+        this.billVariables.billTax = isNaN(this.billVariables.billTax)||this.billVariables.billTax===0.00?"":parseFloat(this.billVariables.billTax).toFixed(2)
+        this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:parseFloat(this.billVariables.billTip).toFixed(2)
+        this.billVariables.billTotal = isNaN(this.billVariables.billTotal)||this.billVariables.billTotal===0.00?"":parseFloat(this.billVariables.billTotal).toFixed(2)
+
+        this.setState({
+            billSubtotal:  this.billVariables.billSubtotal,
+            billTax:  this.billVariables.billTax,
+            billTip:  this.billVariables.billTip,
+            billTotal:  this.billVariables.billTotal,
+        }) 
     }
 
     deleteItem = (id) => {
@@ -218,10 +273,10 @@ export default class SplitScreen extends Component {
             user.itemList = user.itemList.filter( item => item != id);
             return user;
         })
-        this.setState({
-            items: newItems,
-            users: newUsers
-        })
+        this.setStateVaraible2(
+            "items", newItems,
+            "users", newUsers
+        )
 
         
     }
@@ -235,9 +290,9 @@ export default class SplitScreen extends Component {
         };
         var itemList = this.state.items;
         itemList.push(newItem);
-        this.setState({
-            items: itemList
-        })
+        this.setStateVariable(
+            "items" , itemList
+        )
     }
     
     editItem = (updatedItem) => {
@@ -247,39 +302,82 @@ export default class SplitScreen extends Component {
             }
             return updatedItem;
         });
-        this.setState({
-            items: updatedList
-        })
+        this.setStateVariable(
+            "items" , updatedList
+        )
     }
     deleteUser = (id) => {
-        var newItems = this.state.users.filter(item => item.id != id);
-        this.setState({
-            users: newItems
-        })
+        var newUsers = this.state.users.filter(user => user.id != id);
+        var updatedItems = this.recalculateSplit(newUsers, this.state.items);
+        this.setStateVariable(
+            "users" , newUsers,
+            "items" , updatedItems
+        )
     }
     addUser = () =>{
-        var newItem = {
+        var newUser = {
             id: uuid(),
             name: '',
             itemList: []
         };
-        var itemList = this.state.users;
-        itemList.push(newItem);
-        this.setState({
-            users: itemList
+        var userList = this.state.users;
+        userList.push(newUser);
+        this.setStateVariable(
+            "users" , userList
+        )
+    }
+    editUser = (updatedUser) => {
+
+        //update the user
+        var updatedList = this.state.users.map( user => {
+            if( user.id != updatedUser.id) {
+                return user;
+            }
+            return updatedUser;
+        });
+
+        // recalculate the split
+        var updatedItems = this.recalculateSplit(updatedList, this.state.items);
+
+
+        this.setStateVariable2(
+            "users" , updatedList,
+            "items" , updatedItems
+        )
+    }
+
+    recalculateSplit = (updatedUsers, updatedItems) => {
+        //create a temp hash for all the items
+        var hashedItems={};
+        //reset all items split to false
+        updatedItems.map( (item)=> {
+            item.split = false;
+            hashedItems[item.id] = item;
         })
+
+
+        //recalculate the split for every user
+        updatedUsers.map( user => {
+            user.itemList.map( item => {
+                hashedItems[item].split = true;
+            })
+        })
+
+        //store the hash back into the list format
+        updatedItems.map( item => {
+            item = hashedItems[item.key];
+        })
+        return updatedItems;
     }
     
-    editUser = (updatedItem) => {
-        var updatedList = this.state.users.map( item => {
-            if( item.id != updatedItem.id) {
-                return item;
-            }
-            return updatedItem;
-        });
-        this.setState({
-            users: updatedList
+    allItemsSplit = () => {
+        var allSplit = true;
+        this.state.items.map( item => {
+            if (item.split === false) {
+                allSplit=false;
+            } 
         })
+        return allSplit
     }
     componentDidMount() {
         // Print component dimensions to console
@@ -375,16 +473,18 @@ export default class SplitScreen extends Component {
                     />
                     <View style={styles.billDetailView}>
                         <View style={[styles.billDetailViewElement, styles.disabled]}>
-                            <Text style={styles.billDetailInputElement} >Subtotal:${this.state.billSubtotal}</Text>
+                            <Text style={[styles.billDetailText, styles.billDetailFull]} >Subtotal:${this.state.billSubtotal}</Text>
                         </View>
                         <View style={styles.billDetailViewElement}>
-                            <TextInput style={styles.billDetailInputElement} defaultValue={this.billVariables.billTax}   placeholder="Tax"  placeholderTextColor='#9c9191'  keyboardType='numeric'  onChangeText={(text)=>this.billVariables.billTax=text}/>
+                            <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tax:$</Text>
+                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  onChangeText={(text)=>this.billVariables.billTax=text} onEndEditing={(obj)=> this.calculateBill() }/>
                         </View>
                         <View style={[styles.billDetailViewElement, styles.disabled]}>
-                            <Text style={styles.billDetailInputElement} >Tip:${this.state.billTip}</Text>
+                            <Text style={[styles.billDetailText, styles.billDetailFull]} >Tip:${this.state.billTip}</Text>
                         </View>
                         <View style={styles.billDetailViewElement}>
-                            <TextInput style={styles.billDetailInputElement} defaultValue={this.billVariables.billTotal}   placeholder="Total"  placeholderTextColor='#9c9191'  keyboardType='numeric'  onChangeText={(text)=>this.billVariables.billTotal=text}/>
+                            <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
+                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  onChangeText={(text)=>this.billVariables.billTotal=text} onEndEditing={(obj)=> this.calculateBill() } />
                         </View>
                     </View>
                     <ScrollView style={styles.userListHolder} contentContainerStyle={styles.scrollChildren}
@@ -498,10 +598,23 @@ const styles = StyleSheet.create({
     disabled: {
         backgroundColor: '#d3d3d3',
     },
-    billDetailInputElement: {
+    billDetailText: {
+        fontSize: 10
+    },
+    billDetailFull: {
         textAlign: 'center',
         flex: 1,
-        fontSize: 10
+    },
+    billDetailDescription: {
+        textAlign: 'right',
+        flex: 1,
+    },
+    billDetailInput: {
+        textAlign: 'left',
+        flex: 1,
     }
+
+
+    
 });
 

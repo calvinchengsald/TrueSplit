@@ -2,6 +2,7 @@ import React from 'react'
 import {   StyleSheet, Text, TouchableOpacity, View,TextInput } from 'react-native';
 // import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import {Icon} from 'react-native-elements'
+import {standardizeNumber } from '../utility/utils'
 
 const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFromUser }) => {
 
@@ -12,10 +13,11 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
         cost: item.cost,
         editable: editable,
         taxable: item.taxable,
+        split: item.split,
     };
     return (
         
-        <View style={[styles.item, shallowItem.taxable && styles.itemTaxable, shallowItem.id==='HEADER' && styles.header]}>
+        <View style={[styles.item, shallowItem.split && shallowItem.editable && styles.itemSplit, shallowItem.id==='HEADER' && styles.header]}>
             <View style={styles.itemView}> 
                 {editable? 
                    <React.Fragment>
@@ -79,15 +81,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
 }
 
 const setItemCost = (text, item, editItem) => {
-    var finalCost = 0;
-    text = text.replace(/[^0-9.]/,'');
-    var costArr = text.split('.');
-    if( costArr.length == 1){
-        finalCost = costArr[0].replace(/^0/,'');
-    } 
-    else if (costArr.length > 1) {
-        finalCost = costArr[0].replace(/^0/,'') + '.'+ costArr[1].substring(0,2);
-    }
+    var finalCost = standardizeNumber(text);
     //because react native only detects change, we need to force a change here in case the rounded decimal is the same as the starting one
     
     if (item.cost.charAt(item.cost.length-1)==' '){
@@ -120,9 +114,9 @@ const styles = StyleSheet.create({
         borderColor: 'black',
         borderBottomWidth: 4
     },
-    itemTaxable: {
-        backgroundColor: '#e8a5d4',
-        borderColor: '#6e3d5f',
+    itemSplit: {
+        backgroundColor: '#D3D3D3',
+        borderColor: '#416982',
         borderWidth: 2,
     },
     itemView: {
