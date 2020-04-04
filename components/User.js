@@ -9,10 +9,10 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
         name : user.name,
         confirmDelete : user.confirmDelete,
         itemList: user.itemList,
-        subtotal: user.subtotal,
-        tax: user.tax,
-        tip: user.tip,
-        total: user.total,
+        billSubtotal: user.billSubtotal,
+        billTax: user.billTax,
+        billTip: user.billTip,
+        billTotal: user.billTotal,
     };
     var userItems = getUserItems(shallowUser, items);
 
@@ -37,10 +37,10 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
             {userItems.map(item => (
                         <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
             ))}
-            <Item key="SUBTOTAL" item={ {id:"SUBTOTAL", name:"SUBTOTAL" , cost:shallowUser.subtotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
-            <Item key="TAX" item={ {id:"TAX", name:"TAX" , cost:shallowUser.tax, editable:false}} editable={false} deleteItemFromUser={null}></Item>
-            <Item key="TIP" item={ {id:"TIP", name:"TIP" , cost:shallowUser.tip, editable:false}} editable={false} deleteItemFromUser={null}></Item>
-            <Item key="TOTAL" item={ {id:"TOTAL", name:"TOTAL" , cost:shallowUser.total, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+            <Item key="SUBTOTAL" item={ {id:"SUBTOTAL", name:"SUBTOTAL" , cost:shallowUser.billSubtotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+            <Item key="TAX" item={ {id:"TAX", name:"TAX" , cost:shallowUser.billTax, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+            <Item key="TIP" item={ {id:"TIP", name:"TIP" , cost:shallowUser.billTip, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+            <Item key="TOTAL" item={ {id:"TOTAL", name:"TOTAL" , cost:shallowUser.billTotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
                     
         </TouchableOpacity>
     )

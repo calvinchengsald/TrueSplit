@@ -25,7 +25,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sald.TrueSplit"
+    },
+    "android": {
+      "package": "com.sald.TrueSplit"
     }
   }
 }

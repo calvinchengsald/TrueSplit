@@ -59,6 +59,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                         </React.Fragment>
                         :
                         <React.Fragment>
+                            {/* Render an actual item */}
                             { deleteItemFromUser !== null &&
                             <TouchableOpacity  style={[styles.itemElement, styles.flex1]} onPress={() => deleteItemFromUser(shallowItem.id) }> 
                                 <Icon name='remove'></Icon>
@@ -67,9 +68,15 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                             <View style={[styles.itemElement, styles.flex4]}> 
                                 <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
                             </View>
+                            { deleteItemFromUser !== null ?
                             <View style={[styles.itemElement, styles.flex2]}> 
                                 <Text style={styles.itemTextSm}>{ parseFloatZero2( parseFloatZero(shallowItem.cost) * shares / shallowItem.totalShares)}</Text>
                             </View>
+                            :
+                            <View style={[styles.itemElement, styles.flex2]}> 
+                                <Text style={styles.itemTextSm}>{ shallowItem.cost }</Text>
+                            </View>
+                            }
                             { shares !== null &&
                             <View style={[styles.itemElement, styles.flex1]}> 
                                 <Text style={styles.itemTextSm}>{shares}</Text>

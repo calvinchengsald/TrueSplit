@@ -11,7 +11,7 @@ import {Icon} from 'react-native-elements'
 import Draggable from 'react-native-draggable';
 import { render } from 'react-dom';
 import {DRAG_EVENT_SOURCE} from '../constants/DragEventSource';
-import {standardizeNumber } from '../utility/utils'
+import {standardizeNumber,parseFloatZero, parseFloatZero2} from '../utility/utils'
 
 
 export default class SplitScreen extends Component {
@@ -47,12 +47,14 @@ export default class SplitScreen extends Component {
         this.state = {
             items: [
                 {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Sushi', cost: '12.45' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Milk Tea', cost: '4.42', taxable: false, split: false , totalShares: 0}
+                {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
+                {id: uuid(), editable: true, name: 'Pizza', cost: '8' , taxable: true, split: false, totalShares: 0},
+                {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '8', taxable: false, split: false , totalShares: 0}
             ],
             users: [
                 {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false},
-                {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false}
+                {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false},
+                {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false}
             ],
             dragging: false,
             itemIdx: -1,
@@ -224,6 +226,7 @@ export default class SplitScreen extends Component {
     }
     
     calculateBill = () => {
+        
         //standardize all the bad values recieved from user
         this.billVariables.billTax = parseFloat(standardizeNumber(this.billVariables.billTax+""));
         this.billVariables.billTotal = parseFloat(standardizeNumber(this.billVariables.billTotal+""));
@@ -237,16 +240,53 @@ export default class SplitScreen extends Component {
         this.billVariables.billTip = parseFloat(this.billVariables.billTotal -this.billVariables.billSubtotal -this.billVariables.billTax);
         
 
+        var users = this.state.users;
+        var items = this.state.items;
         // Calcualte everything
-        if (this.allItemsSplit() ) {
+        if (this.allItemsSplit()  ) {
             // use real values for calculations
-            this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:this.billVariables.billSubtotal.toFixed(2)
-            this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax.toFixed(2)
-            this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:this.billVariables.billTip.toFixed(2)
-            this.billVariables.billTotal = isNaN(this.billVariables.billTotal)?0:this.billVariables.billTotal.toFixed(2)
+            this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:this.billVariables.billSubtotal
+            this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax
+            this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:this.billVariables.billTip
+            this.billVariables.billTotal = isNaN(this.billVariables.billTotal)?0:this.billVariables.billTotal
+            if (this.validBillValues()) {
+                var hashedItems={};
+                var taxableTotal=0;
+                //reset all items split to false
+                items.map( (item)=> {
+                    hashedItems[item.id] = item;
+                    if (hashedItems[item.id].taxable){
+                        taxableTotal += parseFloat(hashedItems[item.id].cost);
+                    }
+                })
+
+                users.map( (user) => {
+                    user.billSubtotal = 0;
+                    var billSubtotalTaxable = 0;
+                    user.billTax = 0;
+                    Object.keys(user.itemList).map( itemKey => {
+                        user.billSubtotal += parseFloatZero(hashedItems[itemKey].cost) * user.itemList[itemKey] / hashedItems[itemKey].totalShares
+                        if (hashedItems[itemKey].taxable){
+                            billSubtotalTaxable += parseFloatZero(hashedItems[itemKey].cost) * user.itemList[itemKey] / hashedItems[itemKey].totalShares;
+                        }
+                    })
+                    user.billTax = this.billVariables.billTax * billSubtotalTaxable/taxableTotal
+                    user.billTip = this.billVariables.billTip * user.billSubtotal/this.billVariables.billSubtotal
+                    user.billTotal =  user.billSubtotal + user.billTax + user.billTip;
+
+                    // use display pretty values
+                    user.billSubtotal = parseFloatZero2(user.billSubtotal);
+                    user.billTip = parseFloatZero2(user.billTip);
+                    user.billTax = parseFloatZero2(user.billTax);
+                    user.billTotal = parseFloatZero2(user.billTotal);
+                    // console.log(user);
+                    return user;
+                })
+
+            }
+            
+            
         }
-
-
 
         // use display pretty values
         this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:parseFloat(this.billVariables.billSubtotal).toFixed(2)
@@ -259,6 +299,7 @@ export default class SplitScreen extends Component {
             billTax:  this.billVariables.billTax,
             billTip:  this.billVariables.billTip,
             billTotal:  this.billVariables.billTotal,
+            users: users,
         }) 
     }
 
@@ -379,6 +420,18 @@ export default class SplitScreen extends Component {
             } 
         })
         return allSplit
+    }
+
+    // return true when tax>=0, tip>=0, subtotal >0 total>0, subtotal+tax+tip=total
+    validBillValues = () => {
+        return (
+            !isNaN(this.billVariables.billTotal)  && this.billVariables.billTotal > 0 &&
+            !isNaN(this.billVariables.billSubtotal)  && this.billVariables.billSubtotal > 0 &&
+            !isNaN(this.billVariables.billTax)  && this.billVariables.billTax >= 0 &&
+            !isNaN(this.billVariables.billTip)  && this.billVariables.billTip >= 0
+
+
+        );
     }
     componentDidMount() {
         // Print component dimensions to console
