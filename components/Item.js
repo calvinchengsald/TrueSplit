@@ -2,9 +2,9 @@ import React from 'react'
 import {   StyleSheet, Text, TouchableOpacity, View,TextInput } from 'react-native';
 // import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import {Icon} from 'react-native-elements'
-import {standardizeNumber } from '../utility/utils'
+import {standardizeNumber,parseFloatZero, parseFloatZero2} from '../utility/utils'
 
-const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFromUser }) => {
+const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFromUser, shares }) => {
 
     
     var shallowItem = {
@@ -14,6 +14,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
         editable: editable,
         taxable: item.taxable,
         split: item.split,
+        totalShares: item.totalShares
     };
     return (
         
@@ -67,8 +68,13 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                                 <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
                             </View>
                             <View style={[styles.itemElement, styles.flex2]}> 
-                                <Text style={styles.itemTextSm}>{shallowItem.cost}</Text>
+                                <Text style={styles.itemTextSm}>{ parseFloatZero2( parseFloatZero(shallowItem.cost) * shares / shallowItem.totalShares)}</Text>
                             </View>
+                            { shares !== null &&
+                            <View style={[styles.itemElement, styles.flex1]}> 
+                                <Text style={styles.itemTextSm}>{shares}</Text>
+                            </View>
+                            }
                         </React.Fragment>
                         }
                     </React.Fragment> 

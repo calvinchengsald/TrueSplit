@@ -13,3 +13,10 @@ export const standardizeNumber = (number) => {
 
     return finalCost;
 } 
+
+export const parseFloatZero = (str) => {
+    return isNaN(str)?0:parseFloat(str)
+}
+export const parseFloatZero2 = (str) => {
+    return isNaN(str)?0:parseFloat(str).toFixed(2)
+}

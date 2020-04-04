@@ -16,8 +16,6 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
     };
     var userItems = getUserItems(shallowUser, items);
 
-    // console.log("IN USER OBJECT RENDER");
-    // console.log(items);
     return (
         <TouchableOpacity style={styles.user} onPress={()=>pressComponent(shallowUser,editUser)}>
             
@@ -37,7 +35,7 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
             </View>
             
             {userItems.map(item => (
-                        <Item key={item.id} item={item} editable={false} panResponder={panResponder} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
+                        <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
             ))}
             <Item key="SUBTOTAL" item={ {id:"SUBTOTAL", name:"SUBTOTAL" , cost:shallowUser.subtotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
             <Item key="TAX" item={ {id:"TAX", name:"TAX" , cost:shallowUser.tax, editable:false}} editable={false} deleteItemFromUser={null}></Item>
@@ -48,20 +46,22 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
     )
 }
 const deleteItemFromUser = (shallowUser, itemId, editUser) => {
-    shallowUser.itemList  = shallowUser.itemList.filter( (item) => item!=itemId);
+    if ( shallowUser.itemList.hasOwnProperty(itemId) ){
+        delete shallowUser.itemList[itemId]
+    }
     editUser(shallowUser);
 
 }
 
 const getUserItems = (shallowUser, items) => {
     var userItems = [];
-    shallowUser.itemList.map( (itemId) => {
+    Object.keys(shallowUser.itemList).map(itemId => {
         items.map( (itemObj ) => {
             if (itemObj.id === itemId) {
                 userItems.push(itemObj);
             }
         })
-    });
+    })
     return userItems;
 }
 
@@ -82,7 +82,7 @@ export default User;
 const styles = StyleSheet.create({
     user: {
         flex: 1,
-        margin: 10,
+        margin: 2,
         backgroundColor: '#9fcfed',
         borderWidth: 2,
         borderColor: '#416982',

@@ -25,7 +25,7 @@ export default class SplitScreen extends Component {
         itemlistTopOffset : 0,
         itemlistHeight: 0,
         itemHeight : 0,
-        currentIdx : -1,
+        itemIdx : -1,
         rootViewOffsetY : 0,
         userlistTopOffset : 0,
         userlistHeight: 0,
@@ -46,13 +46,13 @@ export default class SplitScreen extends Component {
         super(props);
         this.state = {
             items: [
-                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false},
-                {id: uuid(), editable: true, name: 'Sushi', cost: '12.45' , taxable: true, split: false},
-                {id: uuid(), editable: true, name: 'Milk Tea', cost: '4.42', taxable: false, split: false }
+                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
+                {id: uuid(), editable: true, name: 'Sushi', cost: '12.45' , taxable: true, split: false, totalShares: 0},
+                {id: uuid(), editable: true, name: 'Milk Tea', cost: '4.42', taxable: false, split: false , totalShares: 0}
             ],
             users: [
-                {id: uuid(), name: 'Calvin', itemList: [], confirmDelete: false},
-                {id: uuid(), name: 'Jenny', itemList: [], confirmDelete: false}
+                {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false},
+                {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false}
             ],
             dragging: false,
             itemIdx: -1,
@@ -74,8 +74,8 @@ export default class SplitScreen extends Component {
                 this.dragEventSource = this.findDragEventSource(gestureState.x0, gestureState.y0);
                 if(this.dragEventSource === DRAG_EVENT_SOURCE.ITEM){
                     //find which item is being selected
-                    this.screenVariables.currentIdx = this.findItemIndexFromY(gestureState.y0);
-                    this.setStateVariable2("dragging", true, "itemIdx", this.screenVariables.currentIdx);
+                    this.screenVariables.itemIdx = this.findItemIndexFromY(gestureState.y0);
+                    this.setStateVariable2("dragging", true, "itemIdx", this.screenVariables.itemIdx);
                 }
             },
             onPanResponderMove: (evt, gestureState) => {
@@ -98,30 +98,36 @@ export default class SplitScreen extends Component {
                 var updatedUsers = this.state.users
                 if(this.dragEventSource === DRAG_EVENT_SOURCE.ITEM){
                     //add this item into the user's list
-                    if(this.screenVariables.userIdx !== -1 && this.screenVariables.currentIdx !== -1 ){
+                    if(this.screenVariables.userIdx !== -1 && this.screenVariables.itemIdx !== -1 ){
                         var updatedUser = this.state.users[this.screenVariables.userIdx]
-                        updatedUser.itemList.push(this.state.items[this.screenVariables.currentIdx].id);
+                        if (updatedUser.itemList.hasOwnProperty(this.state.items[this.screenVariables.itemIdx].id)) {
+                            updatedUser.itemList[this.state.items[this.screenVariables.itemIdx].id] += 1;
+                        } 
+                        else {
+                            updatedUser.itemList[this.state.items[this.screenVariables.itemIdx].id] = 1;
+                        }
+                        // updatedUser.itemList.push(this.state.items[this.screenVariables.itemIdx].id);
                         this.editUser(updatedUser)
                     }
                     // hoverd over delete button?
-                    else if (this.screenVariables.currentIdx !== -1 && this.findHoverOverDelete(gestureState.moveX,gestureState.moveY)){
-                        this.deleteItem(this.state.items[this.screenVariables.currentIdx].id);
+                    else if (this.screenVariables.itemIdx !== -1 && this.findHoverOverDelete(gestureState.moveX,gestureState.moveY)){
+                        this.deleteItem(this.state.items[this.screenVariables.itemIdx].id);
                     }
                 }
 
                 
                 // reset all dragging associated variables
-                this.screenVariables.currentIdx  = -1;
+                this.screenVariables.itemIdx  = -1;
                 this.screenVariables.userIdx  = -1;
-                this.setStateVariable3("dragging", false, "itemIdx", this.screenVariables.currentIdx, "userIdx" ,this.screenVariables.userIdx );
+                this.setStateVariable3("dragging", false, "itemIdx", this.screenVariables.itemIdx, "userIdx" ,this.screenVariables.userIdx );
             },
             onPanResponderTerminate: (evt, gestureState) => {
               
                 
                 // reset all dragging associated variables
-                this.screenVariables.currentIdx  = -1;
+                this.screenVariables.itemIdx  = -1;
                 this.screenVariables.userIdx  = -1;
-                this.setStateVariable3("dragging", false, "itemIdx", this.screenVariables.currentIdx, "userIdx" ,this.screenVariables.userIdx );
+                this.setStateVariable3("dragging", false, "itemIdx", this.screenVariables.itemIdx, "userIdx" ,this.screenVariables.userIdx );
             },
             onShouldBlockNativeResponder: (evt, gestureState) => {
               // Returns whether this component should block native components from becoming the JS
@@ -183,14 +189,7 @@ export default class SplitScreen extends Component {
     
     // From the X,Y coordinate of the initial drag point, find what item is the drag being applied to
     findItemIndexFromY = (y) => {
-        // console.log("this.scrollOffsetY: " + this.screenVariables.scrollOffsetY)
-        // console.log("this.y: " + y)
-        // console.log("this.itemlistTopOffset: " + this.screenVariables.itemlistTopOffset)
-        // console.log("this.rootViewOffsetY: " + this.screenVariables.rootViewOffsetY)
-        // console.log("this.itemHeight: " + this.screenVariables.itemHeight)
         const value = Math.floor( (this.screenVariables.scrollOffsetY + y - this.screenVariables.itemlistTopOffset -this.screenVariables.rootViewOffsetY - this.screenVariables.containerViewOffsetY) / this.screenVariables.itemHeight );
-        // console.log("this.value: " + value)
-        // console.log("this.this.state.items.length-1: " + (this.state.items.length-1))
         if(value<0) {
             return 0;
         }
@@ -221,9 +220,6 @@ export default class SplitScreen extends Component {
                 break;
             }
         }
-
-        // console.log ( x + "              " +  y);
-        // console.log( "X:" + x + "/Y:" + y + " = " +idx);
         return idx;
     }
     
@@ -243,13 +239,13 @@ export default class SplitScreen extends Component {
 
         // Calcualte everything
         if (this.allItemsSplit() ) {
-            console.log("all split done")
             // use real values for calculations
             this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:this.billVariables.billSubtotal.toFixed(2)
             this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax.toFixed(2)
             this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:this.billVariables.billTip.toFixed(2)
             this.billVariables.billTotal = isNaN(this.billVariables.billTotal)?0:this.billVariables.billTotal.toFixed(2)
         }
+
 
 
         // use display pretty values
@@ -270,10 +266,12 @@ export default class SplitScreen extends Component {
         var newItems = this.state.items.filter(item => item.id != id);
         var newUsers = this.state.users;
         newUsers = newUsers.map( (user) => {
-            user.itemList = user.itemList.filter( item => item != id);
+            if (user.itemList.hasOwnProperty(id)){
+                delete user.itemList[id]
+            }
             return user;
         })
-        this.setStateVaraible2(
+        this.setStateVariable2(
             "items", newItems,
             "users", newUsers
         )
@@ -318,7 +316,7 @@ export default class SplitScreen extends Component {
         var newUser = {
             id: uuid(),
             name: '',
-            itemList: []
+            itemList: {}
         };
         var userList = this.state.users;
         userList.push(newUser);
@@ -346,26 +344,29 @@ export default class SplitScreen extends Component {
         )
     }
 
+    //recalculate the split and total shares for each item
     recalculateSplit = (updatedUsers, updatedItems) => {
         //create a temp hash for all the items
         var hashedItems={};
         //reset all items split to false
         updatedItems.map( (item)=> {
             item.split = false;
+            item.totalShares = 0;
             hashedItems[item.id] = item;
         })
 
 
         //recalculate the split for every user
         updatedUsers.map( user => {
-            user.itemList.map( item => {
-                hashedItems[item].split = true;
+            Object.keys(user.itemList).map (itemKey =>{
+                hashedItems[itemKey].split = true;
+                hashedItems[itemKey].totalShares += user.itemList[itemKey]
             })
         })
 
         //store the hash back into the list format
         updatedItems.map( item => {
-            item = hashedItems[item.key];
+            item = hashedItems[item.id];
         })
         return updatedItems;
     }
@@ -387,8 +388,6 @@ export default class SplitScreen extends Component {
     }
 
     render() {
-        // console.log("in main render");
-        // console.log(this.state.items);
         const renderedItem = ({item, index}) => (
             <View style={index===this.state.itemIdx && styles.dragSoruce} 
             >
