@@ -2,7 +2,8 @@
 export const standardizeNumber = (number) => {
     
     var finalCost = 0;
-    number = number.replace(/[^0-9.]/,'');
+    number = number.replace(/\s/,'');
+    number = number.substring(0,1).replace(/[^0-9.-]/,'') + number.substring(1,number.length).replace(/[^0-9.]/,'');
     var costArr = number.split('.');
     if( costArr.length == 1){
         finalCost = costArr[0].replace(/^0/,'');

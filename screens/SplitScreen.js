@@ -1,15 +1,10 @@
-import React, { useState,Component } from 'react'
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View, FlatList, PanResponder, Animated ,TextInput} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import { RectButton, ScrollView } from 'react-native-gesture-handler';
+import React, { Component } from 'react'
+import {  StyleSheet, Text, TouchableOpacity, View, FlatList, PanResponder, Animated ,TextInput, Alert} from 'react-native';
+import {  ScrollView } from 'react-native-gesture-handler';
 import Item  from '../components/Item'
 import User  from '../components/User'
-import { useIsFocused } from '@react-navigation/native';
 import uuid from 'react-uuid';
 import {Icon} from 'react-native-elements'
-import Draggable from 'react-native-draggable';
-import { render } from 'react-dom';
 import {DRAG_EVENT_SOURCE} from '../constants/DragEventSource';
 import {standardizeNumber,parseFloatZero, parseFloatZero2} from '../utility/utils'
 
@@ -41,6 +36,10 @@ export default class SplitScreen extends Component {
         billTax: "",
         billTip: 0,
         billTotal: "",
+        validTax: false,
+        validTip: false,
+        validTotal: false,
+        validSubtotal: false,
     }
     constructor(props){
         super(props);
@@ -63,6 +62,11 @@ export default class SplitScreen extends Component {
             billTotal: 0,
             billTax: 0,
             billTip: 0,
+            validTax: false,
+            validTip: false,
+            validTotal: false,
+            validSubtotal: false,
+            statusInformation: "",
         }
         this._panResponder = PanResponder.create({
             // Ask to be the responder:
@@ -164,6 +168,22 @@ export default class SplitScreen extends Component {
             })
     }
 
+    resetAll = () => {
+        Alert.alert(
+            'Reset All',
+            'Are you sure you want to delete all Items and Users?',
+            [
+                
+                {text: 'Cancel', onPress: () => {}},
+                {text: 'OK', onPress: () => {this.setStateAll({
+                    users: [],
+                    items: []
+                })}, style: 'cancel'},
+            ],
+            { cancelable: false }
+        )
+        
+    }
     // find the source that is initiating this drag
     findDragEventSource = (x,y) => {
         var yy = y - this.screenVariables.itemlistTopOffset -this.screenVariables.rootViewOffsetY - this.screenVariables.containerViewOffsetY;
@@ -229,6 +249,7 @@ export default class SplitScreen extends Component {
         
         //standardize all the bad values recieved from user
         this.billVariables.billTax = parseFloat(standardizeNumber(this.billVariables.billTax+""));
+        this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax;
         this.billVariables.billTotal = parseFloat(standardizeNumber(this.billVariables.billTotal+""));
         //calculate the bill subtotal
         var billSubtotal = 0.0;
@@ -243,13 +264,11 @@ export default class SplitScreen extends Component {
         var users = this.state.users;
         var items = this.state.items;
         // Calcualte everything
-        if (this.allItemsSplit()  ) {
-            // use real values for calculations
-            this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:this.billVariables.billSubtotal
-            this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax
-            this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:this.billVariables.billTip
-            this.billVariables.billTotal = isNaN(this.billVariables.billTotal)?0:this.billVariables.billTotal
-            if (this.validBillValues()) {
+        var validBillValues = this.validBillValues();
+        var allItemsSplit = false;
+        if ( validBillValues  ) {
+            allItemsSplit = this.allItemsSplit();
+            if(allItemsSplit) {
                 var hashedItems={};
                 var taxableTotal=0;
                 //reset all items split to false
@@ -282,10 +301,7 @@ export default class SplitScreen extends Component {
                     // console.log(user);
                     return user;
                 })
-
             }
-            
-            
         }
 
         // use display pretty values
@@ -294,12 +310,25 @@ export default class SplitScreen extends Component {
         this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:parseFloat(this.billVariables.billTip).toFixed(2)
         this.billVariables.billTotal = isNaN(this.billVariables.billTotal)||this.billVariables.billTotal===0.00?"":parseFloat(this.billVariables.billTotal).toFixed(2)
 
+        // find status of this calculation:
+        var statusInformation = "All calculated"
+        if(!validBillValues) {
+            statusInformation = "Please fix bill values in Red"
+        }
+        else if(!allItemsSplit){
+            statusInformation = "Please split all remaining items in Blue"
+        } 
         this.setState({
             billSubtotal:  this.billVariables.billSubtotal,
             billTax:  this.billVariables.billTax,
             billTip:  this.billVariables.billTip,
             billTotal:  this.billVariables.billTotal,
+            validTax: this.billVariables.validTax,
+            validTip: this.billVariables.validTip,
+            validTotal: this.billVariables.validTotal,
+            validSubtotal: this.billVariables.validSubtotal,
             users: users,
+            statusInformation : statusInformation,
         }) 
     }
 
@@ -424,14 +453,31 @@ export default class SplitScreen extends Component {
 
     // return true when tax>=0, tip>=0, subtotal >0 total>0, subtotal+tax+tip=total
     validBillValues = () => {
+        
+        // use real values for calculations
+        this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:this.billVariables.billSubtotal
+        this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax
+        this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:this.billVariables.billTip
+        this.billVariables.billTotal = isNaN(this.billVariables.billTotal)?0:this.billVariables.billTotal
+
+        this.billVariables.validSubtotal =  this.billVariables.billSubtotal >= 0 ;
+        this.billVariables.validTax =  this.billVariables.billTax >= 0 ;
+        this.billVariables.validTip = this.billVariables.billTip >= 0;
+        this.billVariables.validTotal = this.billVariables.billTotal > 0 && this.billVariables.billTotal >= this.billVariables.billSubtotal;
         return (
-            !isNaN(this.billVariables.billTotal)  && this.billVariables.billTotal > 0 &&
+            this.billVariables.validTotal &&
             !isNaN(this.billVariables.billSubtotal)  && this.billVariables.billSubtotal > 0 &&
-            !isNaN(this.billVariables.billTax)  && this.billVariables.billTax >= 0 &&
-            !isNaN(this.billVariables.billTip)  && this.billVariables.billTip >= 0
+            this.billVariables.validTax && this.billVariables.validTip
+            
 
 
         );
+    }
+    handleChangeBillValues = (type, value) => {
+        this.billVariables[type] = standardizeNumber(value);
+        this.setState({
+            [type] : this.billVariables[type]
+        })
     }
     componentDidMount() {
         // Print component dimensions to console
@@ -524,19 +570,20 @@ export default class SplitScreen extends Component {
                         scrollEventThrottle={16}
                     />
                     <View style={styles.billDetailView}>
-                        <View style={[styles.billDetailViewElement, styles.disabled]}>
+                        <View style={[styles.billDetailViewElement, styles.disabled,!this.state.validSubtotal && styles.billDetailInvalid]}>
                             <Text style={[styles.billDetailText, styles.billDetailFull]} >Subtotal:${this.state.billSubtotal}</Text>
                         </View>
-                        <View style={styles.billDetailViewElement}>
+                        <View style={[styles.billDetailViewElement,!this.state.validTax && styles.billDetailInvalid, !this.state.validTip && this.state.validTotal && styles.billDetailInvalid]}>
                             <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tax:$</Text>
-                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  onChangeText={(text)=>this.billVariables.billTax=text} onEndEditing={(obj)=> this.calculateBill() }/>
+                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTax +""}  onChangeText={(text)=>this.handleChangeBillValues("billTax",text)} onEndEditing={()=>this.calculateBill()}/>
                         </View>
-                        <View style={[styles.billDetailViewElement, styles.disabled]}>
+                        <View style={[styles.billDetailViewElement, styles.disabled, !this.state.validTip && styles.billDetailInvalid]}>
                             <Text style={[styles.billDetailText, styles.billDetailFull]} >Tip:${this.state.billTip}</Text>
                         </View>
-                        <View style={styles.billDetailViewElement}>
+                        <View style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]}>
                             <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
-                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  onChangeText={(text)=>this.billVariables.billTotal=text} onEndEditing={(obj)=> this.calculateBill() } />
+                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  value={this.state.billTotal +""} onChangeText={(text)=>this.handleChangeBillValues("billTotal",text)} onEndEditing={()=>this.calculateBill()} />
+                       
                         </View>
                     </View>
                     <ScrollView style={styles.userListHolder} contentContainerStyle={styles.scrollChildren}
@@ -567,9 +614,19 @@ export default class SplitScreen extends Component {
                                 </View>
                             ))}
                         </View>
+                        
                     </ScrollView>
                     
         
+                    <View style={styles.statusBar}>
+                        
+                        <View style={[{flex: 4} ]}>
+                            <Text style={styles.statusInformation}>{this.state.statusInformation} </Text>
+                        </View>
+                        <View style={[{flex: 1} , styles.centralButtonHolder]} >
+                            <Icon name="settings-backup-restore" color="red" onPress={()=>this.resetAll()}></Icon>
+                        </View>
+                    </View>
                 </View>
             </View>
             
@@ -586,7 +643,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fafafa',
-        margin: 10,
+        margin: 2,
         borderColor: '#FF0000',
         borderWidth: 1,
     },
@@ -664,6 +721,26 @@ const styles = StyleSheet.create({
     billDetailInput: {
         textAlign: 'left',
         flex: 1,
+    },
+    billDetailInvalid: {
+        borderColor: '#bb0000',
+        borderWidth: 4
+    },
+    statusBar: {
+        justifyContent: 'center',
+        flexDirection: 'row',
+        borderColor: '#5e4848',
+        borderWidth: 2,
+        alignItems: 'center'
+    },
+    centralButtonHolder: {
+        justifyContent: 'center',
+        borderColor: '#5e4848',
+        borderWidth: 2,
+    },
+    statusInformation: {
+        justifyContent: 'center',
+        textAlign: 'center'
     }
 
 

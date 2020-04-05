@@ -31,11 +31,11 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                         </View>
                         
                         <View style={[styles.itemElement, styles.flex2]}> 
-                            <TextInput style={styles.itemText} defaultValue={(shallowItem.cost).replace(/[^0-9. ]/,'')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, editItem) } keyboardType='numeric'/>
+                            <TextInput style={styles.itemText} defaultValue={(shallowItem.cost).replace(/[^0-9.\- ]/,'')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, item.cost, editItem) } keyboardType='numeric'/>
                         </View>
                         
                         <View style={[styles.itemElement, styles.flex1]}> 
-                            <Icon onPress={()=>setItemTaxable(shallowItem, editItem)} name={shallowItem.taxable?"check":"remove"}></Icon>
+                            <Icon onPress={()=>setItemTaxable(shallowItem, editItem)} name={shallowItem.taxable?"check":"close"}></Icon>
                         </View>
                         
                     </React.Fragment> 
@@ -93,14 +93,14 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
     
 }
 
-const setItemCost = (text, item, editItem) => {
+const setItemCost = (text, item, origionalCost, editItem) => {
     var finalCost = standardizeNumber(text);
     //because react native only detects change, we need to force a change here in case the rounded decimal is the same as the starting one
     
-    if (item.cost.charAt(item.cost.length-1)==' '){
+    if (origionalCost.charAt(0)==' '){
         item.cost = finalCost;
     } else {
-        item.cost = finalCost + ' ';
+        item.cost = ' ' + finalCost ;
     }
     editItem(item)
 }
