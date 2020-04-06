@@ -5,8 +5,8 @@ import Item  from '../components/Item'
 import User  from '../components/User'
 import uuid from 'react-uuid';
 import {Icon} from 'react-native-elements'
-import {DRAG_EVENT_SOURCE} from '../constants/DragEventSource';
-import {standardizeNumber,parseFloatZero, parseFloatZero2} from '../utility/utils'
+import {DRAG_EVENT_SOURCE, TOLERANCE} from '../constants/DragEventSource';
+import {standardizeNumber,parseFloatZero, parseFloatZero2,sortObjectArrayByKey} from '../utility/utils'
 
 
 export default class SplitScreen extends Component {
@@ -40,15 +40,17 @@ export default class SplitScreen extends Component {
         validTip: false,
         validTotal: false,
         validSubtotal: false,
+        validBillValues: true,
+        allItemsSplit: true,
     }
     constructor(props){
         super(props);
         this.state = {
             items: [
-                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Pizza', cost: '8' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '8', taxable: false, split: false , totalShares: 0}
+                // {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
+                // {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
+                // {id: uuid(), editable: true, name: 'Pizza', cost: '8' , taxable: true, split: false, totalShares: 0},
+                {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '10', taxable: false, split: false , totalShares: 0}
             ],
             users: [
                 {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false},
@@ -248,13 +250,12 @@ export default class SplitScreen extends Component {
     calculateBill = () => {
         
         //standardize all the bad values recieved from user
-        this.billVariables.billTax = parseFloat(standardizeNumber(this.billVariables.billTax+""));
-        this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax;
+        this.billVariables.billTax = parseFloatZero(this.billVariables.billTax+"");
         this.billVariables.billTotal = parseFloat(standardizeNumber(this.billVariables.billTotal+""));
         //calculate the bill subtotal
         var billSubtotal = 0.0;
         this.state.items.map( (item) => {
-            billSubtotal+=parseFloat(item.cost)
+            billSubtotal+=parseFloatZero(item.cost)
         });
         this.billVariables.billSubtotal = parseFloat(billSubtotal);
         //calcualte the tip from the above variables
@@ -264,11 +265,11 @@ export default class SplitScreen extends Component {
         var users = this.state.users;
         var items = this.state.items;
         // Calcualte everything
-        var validBillValues = this.validBillValues();
-        var allItemsSplit = false;
-        if ( validBillValues  ) {
-            allItemsSplit = this.allItemsSplit();
-            if(allItemsSplit) {
+        this.billVariables.validBillValues = this.validBillValues();
+        this.billVariables.allItemsSplit = false;
+        if ( this.billVariables.validBillValues  ) {
+            this.billVariables.allItemsSplit = this.allItemsSplit();
+            if(this.billVariables.allItemsSplit) {
                 var hashedItems={};
                 var taxableTotal=0;
                 //reset all items split to false
@@ -293,29 +294,30 @@ export default class SplitScreen extends Component {
                     user.billTip = this.billVariables.billTip * user.billSubtotal/this.billVariables.billSubtotal
                     user.billTotal =  user.billSubtotal + user.billTax + user.billTip;
 
-                    // use display pretty values
-                    user.billSubtotal = parseFloatZero2(user.billSubtotal);
-                    user.billTip = parseFloatZero2(user.billTip);
-                    user.billTax = parseFloatZero2(user.billTax);
-                    user.billTotal = parseFloatZero2(user.billTotal);
                     // console.log(user);
                     return user;
                 })
+
+                //since all these values are exact, we need to display the rounded pretty values for each user.
+                //rounding can differ though and exact values will be off by 0.01cent when multiple people is involved.
+                users = this.distributeTotalWithRounding(users);
+
             }
         }
 
         // use display pretty values
-        this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:parseFloat(this.billVariables.billSubtotal).toFixed(2)
+        this.billVariables.billSubtotal = parseFloatZero2(this.billVariables.billSubtotal)
         this.billVariables.billTax = isNaN(this.billVariables.billTax)||this.billVariables.billTax===0.00?"":parseFloat(this.billVariables.billTax).toFixed(2)
-        this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:parseFloat(this.billVariables.billTip).toFixed(2)
+        this.billVariables.billTip = parseFloatZero2(this.billVariables.billTip)
         this.billVariables.billTotal = isNaN(this.billVariables.billTotal)||this.billVariables.billTotal===0.00?"":parseFloat(this.billVariables.billTotal).toFixed(2)
+
 
         // find status of this calculation:
         var statusInformation = "All calculated"
-        if(!validBillValues) {
+        if(!this.billVariables.validBillValues) {
             statusInformation = "Please fix bill values in Red"
         }
-        else if(!allItemsSplit){
+        else if(!this.billVariables.allItemsSplit){
             statusInformation = "Please split all remaining items in Blue"
         } 
         this.setState({
@@ -345,8 +347,6 @@ export default class SplitScreen extends Component {
             "items", newItems,
             "users", newUsers
         )
-
-        
     }
     addItem = () =>{
         var newItem = {
@@ -362,7 +362,6 @@ export default class SplitScreen extends Component {
             "items" , itemList
         )
     }
-    
     editItem = (updatedItem) => {
         var updatedList = this.state.items.map( item => {
             if( item.id != updatedItem.id) {
@@ -414,6 +413,46 @@ export default class SplitScreen extends Component {
         )
     }
 
+    //find the total rounding extra cents, and divide faily between everyone
+    distributeTotalWithRounding = (users) =>{
+        var hashedUsers = {};
+        // keeps track of which user had which extra cent, sorted
+        var extraCentArray = [];
+        var totalExtraCents = 0.0;
+        users.map(user => {
+            var extraCents = Math.abs(user.billTotal*100  - parseInt(user.billTotal*100) );
+            totalExtraCents += extraCents;
+            extraCentArray.push({id: user.id, extraCents: extraCents});
+            user.billTotal = parseFloat(user.billTotal.toFixed(2));
+            hashedUsers[user.id] = user;
+        })
+
+        //sort the floaterArray to see which users to assign the extra cents to
+        extraCentArray = sortObjectArrayByKey(extraCentArray,"extraCents");
+        //just to get to the next digit of cents
+        totalExtraCents+=TOLERANCE*100;
+        var centsToSplit = parseInt(totalExtraCents);
+        //for every extra cent to split, give them to each successive top extraCent user
+        for(var i = 0; i< centsToSplit; i++){
+            hashedUsers[extraCentArray[i]["id"]].billTotal += 0.01;
+        }
+
+        //store the user back into the list format
+        users.map( user => {
+            user = hashedUsers[user.id];
+            // use display pretty values
+            user.billSubtotal = parseFloatZero2(user.billSubtotal);
+            user.billTip = parseFloatZero2(user.billTip);
+            user.billTax = parseFloatZero2(user.billTax);
+            user.billTotal = parseFloatZero2(user.billTotal);
+        })
+
+        return users;
+
+        
+                    
+    }
+
     //recalculate the split and total shares for each item
     recalculateSplit = (updatedUsers, updatedItems) => {
         //create a temp hash for all the items
@@ -455,15 +494,21 @@ export default class SplitScreen extends Component {
     validBillValues = () => {
         
         // use real values for calculations
-        this.billVariables.billSubtotal = isNaN(this.billVariables.billSubtotal)?0:this.billVariables.billSubtotal
-        this.billVariables.billTax = isNaN(this.billVariables.billTax)?0:this.billVariables.billTax
-        this.billVariables.billTip = isNaN(this.billVariables.billTip)?0:this.billVariables.billTip
-        this.billVariables.billTotal = isNaN(this.billVariables.billTotal)?0:this.billVariables.billTotal
+        this.billVariables.billSubtotal = parseFloatZero(this.billVariables.billSubtotal);
+        this.billVariables.billTax = parseFloatZero(this.billVariables.billTax);
+        this.billVariables.billTip = parseFloatZero(this.billVariables.billTip);
+        this.billVariables.billTotal = parseFloatZero(this.billVariables.billTotal);
+
 
         this.billVariables.validSubtotal =  this.billVariables.billSubtotal >= 0 ;
         this.billVariables.validTax =  this.billVariables.billTax >= 0 ;
         this.billVariables.validTip = this.billVariables.billTip >= 0;
         this.billVariables.validTotal = this.billVariables.billTotal > 0 && this.billVariables.billTotal >= this.billVariables.billSubtotal;
+
+        if(Math.abs(this.billVariables.billTotal - (this.billVariables.billSubtotal + this.billVariables.billTax + this.billVariables.billTip)) > TOLERANCE) {
+            this.billVariables.validTax = false;
+            this.billVariables.validTotal = false;
+        }
         return (
             this.billVariables.validTotal &&
             !isNaN(this.billVariables.billSubtotal)  && this.billVariables.billSubtotal > 0 &&
@@ -618,10 +663,10 @@ export default class SplitScreen extends Component {
                     </ScrollView>
                     
         
-                    <View style={styles.statusBar}>
+                    <View style={[styles.statusBar, (!this.billVariables.allItemsSplit || !this.billVariables.validBillValues) && styles.statusBarError ]}>
                         
-                        <View style={[{flex: 4} ]}>
-                            <Text style={styles.statusInformation}>{this.state.statusInformation} </Text>
+                        <View style={[{flex: 4}]}>
+                            <Text style={[styles.statusInformation,(!this.billVariables.allItemsSplit || !this.billVariables.validBillValues) && styles.statusInformationError ]}>{this.state.statusInformation} </Text>
                         </View>
                         <View style={[{flex: 1} , styles.centralButtonHolder]} >
                             <Icon name="settings-backup-restore" color="red" onPress={()=>this.resetAll()}></Icon>
@@ -731,16 +776,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         borderColor: '#5e4848',
         borderWidth: 2,
+        backgroundColor: '#d0e4ef',
         alignItems: 'center'
+    },
+    statusBarError: {
+        backgroundColor: '#8b0000',
     },
     centralButtonHolder: {
         justifyContent: 'center',
         borderColor: '#5e4848',
+        backgroundColor: '#ffffff',
         borderWidth: 2,
     },
     statusInformation: {
         justifyContent: 'center',
         textAlign: 'center'
+    },
+    statusInformationError: {
+        color: '#ffffff'
     }
 
 

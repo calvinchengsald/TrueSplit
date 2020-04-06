@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View, FlatList,TextInput } from 'react-native';
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View, FlatList,TextInput, Alert } from 'react-native';
 import {Icon} from 'react-native-elements'
 import Item from './Item'
 
@@ -17,32 +17,32 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
     var userItems = getUserItems(shallowUser, items);
 
     return (
-        <TouchableOpacity style={styles.user} onPress={()=>pressComponent(shallowUser,editUser)}>
+        <View style={styles.user}>
             
             <View style={styles.userView}> 
                 <React.Fragment>
                     <View style={styles.userElement}> 
                         <TextInput style={styles.itemText} defaultValue={shallowUser.name}   placeholder="Name"  placeholderTextColor='#9c9191'    onChangeText={(text)=>shallowUser.name=text} onEndEditing={()=> setUserName(shallowUser, editUser) }/>
                     </View>
-                    { shallowUser.confirmDelete? 
-                        <Icon color='red' name='delete' onPress={()=>deleteUser(shallowUser.id)}></Icon>
-                        :
-                        <Icon name='delete' onPress={()=>setConfirmDelete(shallowUser, editUser, false)} onPress={()=>setConfirmDelete(shallowUser, editUser, true)}></Icon>
-                    }
+                    <Icon color='#8b0000' name='delete' onPress={()=>confirmDeleteUser(deleteUser,shallowUser)}></Icon>
 
                 </React.Fragment>
                 
             </View>
+            <View style={styles.userItemView}>
+                {userItems.map(item => (
+                            <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
+                ))}
+            </View>
             
-            {userItems.map(item => (
-                        <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
-            ))}
-            <Item key="SUBTOTAL" item={ {id:"SUBTOTAL", name:"SUBTOTAL" , cost:shallowUser.billSubtotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+            {/* <Item key="SUBTOTAL" item={ {id:"SUBTOTAL", name:"SUBTOTAL" , cost:shallowUser.billSubtotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
             <Item key="TAX" item={ {id:"TAX", name:"TAX" , cost:shallowUser.billTax, editable:false}} editable={false} deleteItemFromUser={null}></Item>
-            <Item key="TIP" item={ {id:"TIP", name:"TIP" , cost:shallowUser.billTip, editable:false}} editable={false} deleteItemFromUser={null}></Item>
-            <Item key="TOTAL" item={ {id:"TOTAL", name:"TOTAL" , cost:shallowUser.billTotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+            <Item key="TIP" item={ {id:"TIP", name:"TIP" , cost:shallowUser.billTip, editable:false}} editable={false} deleteItemFromUser={null}></Item> */}
+            <View style={styles.billDetailView}>
+                <Item key="TOTAL" item={ {id:"TOTAL", name:"TOTAL" , cost:shallowUser.billTotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+            </View>
                     
-        </TouchableOpacity>
+        </View>
     )
 }
 const deleteItemFromUser = (shallowUser, itemId, editUser) => {
@@ -51,6 +51,20 @@ const deleteItemFromUser = (shallowUser, itemId, editUser) => {
     }
     editUser(shallowUser);
 
+}
+
+const confirmDeleteUser = (deleteUser, user) => {
+    Alert.alert(
+        'Delete User',
+        'Are you sure you want to delete: '+user.name+'?',
+        [
+            
+            {text: 'Cancel', onPress: () => {}},
+            {text: 'OK', onPress: () => {deleteUser(user.id)}, style: 'cancel'},
+        ],
+        { cancelable: false }
+    )
+    
 }
 
 const getUserItems = (shallowUser, items) => {
@@ -65,10 +79,6 @@ const getUserItems = (shallowUser, items) => {
     return userItems;
 }
 
-const pressComponent = (shallowUser ,editUser)  => {
-    shallowUser.confirmDelete = false;
-    editUser(shallowUser);
-}
 const setUserName = (shallowUser ,editUser) => {
     shallowUser.confirmDelete = false;
     editUser(shallowUser);
@@ -86,7 +96,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#9fcfed',
         borderWidth: 2,
         borderColor: '#416982',
-        paddingBottom: 50,
+        paddingBottom: 20
     },
     userView: {
         flexDirection: 'row',
@@ -99,6 +109,11 @@ const styles = StyleSheet.create({
     },
     userText: {
         fontSize: 15,
+    },
+    userItemView: {
+    },
+    billDetailView: {
+        justifyContent: 'flex-end',
     }
 });
   

@@ -54,7 +54,7 @@ function getHeaderTitle(route) {
     case 'Links':
       return 'Links to learn more';
     case 'Split':
-      return 'Splt your bill!';
+      return 'Split your bill!';
 
   }
 }

@@ -2,7 +2,7 @@ import React from 'react'
 import {   StyleSheet, Text, TouchableOpacity, View,TextInput } from 'react-native';
 // import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import {Icon} from 'react-native-elements'
-import {standardizeNumber,parseFloatZero, parseFloatZero2} from '../utility/utils'
+import {standardizeNumber,parseFloatZero, parseFloatZero2,parseFloatZero0, coalesce} from '../utility/utils'
 
 const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFromUser, shares }) => {
 
@@ -31,7 +31,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                         </View>
                         
                         <View style={[styles.itemElement, styles.flex2]}> 
-                            <TextInput style={styles.itemText} defaultValue={(shallowItem.cost).replace(/[^0-9.\- ]/,'')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, item.cost, editItem) } keyboardType='numeric'/>
+                            <TextInput style={styles.itemText}  defaultValue={coalesce( (shallowItem.cost).replace(/[^0-9.\- ]/,''), '0')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, item.cost, editItem) } keyboardType='numeric'/>
                         </View>
                         
                         <View style={[styles.itemElement, styles.flex1]}> 
@@ -43,47 +43,51 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                     
                     <React.Fragment>
                         {shallowItem.id ==='HEADER' ?
-                        <React.Fragment>
-                            <View  style={[styles.itemElement, styles.flex1]}> 
-                                <Icon name='list'></Icon>
-                            </View>
-                            <View style={[styles.itemElement, styles.flex4]}> 
-                                <Text style={styles.itemText}>{shallowItem.name}</Text>
-                            </View>
-                            <View style={[styles.itemElement, styles.flex2]}> 
-                                <Text style={styles.itemText}>{shallowItem.cost}</Text>
-                            </View>
-                            <View style={[styles.itemElement, styles.flex1]}> 
-                                <Text style={[styles.itemTxText, shallowItem.taxable && styles.itemTxTextTaxable]}>Tax</Text>
-                            </View>
-                        </React.Fragment>
+                            <React.Fragment>
+                                <View  style={[styles.itemElement, styles.flex1]}> 
+                                    <Icon name='list'></Icon>
+                                </View>
+                                <View style={[styles.itemElement, styles.flex4]}> 
+                                    <Text style={styles.itemText}>{shallowItem.name}</Text>
+                                </View>
+                                <View style={[styles.itemElement, styles.flex2]}> 
+                                    <Text style={styles.itemText}>{shallowItem.cost}</Text>
+                                </View>
+                                <View style={[styles.itemElement, styles.flex1]}> 
+                                    <Text style={[styles.itemTxText, shallowItem.taxable && styles.itemTxTextTaxable]}>Tax</Text>
+                                </View>
+                            </React.Fragment>
                         :
+                            
                         <React.Fragment>
-                            {/* Render an actual item */}
-                            { deleteItemFromUser !== null &&
-                            <TouchableOpacity  style={[styles.itemElement, styles.flex1]} onPress={() => deleteItemFromUser(shallowItem.id) }> 
-                                <Icon name='remove'></Icon>
-                            </TouchableOpacity>
-                            }
-                            <View style={[styles.itemElement, styles.flex4]}> 
-                                <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
-                            </View>
-                            { deleteItemFromUser !== null ?
-                            <View style={[styles.itemElement, styles.flex2]}> 
-                                <Text style={styles.itemTextSm}>{ parseFloatZero2( parseFloatZero(shallowItem.cost) * shares / shallowItem.totalShares)}</Text>
-                            </View>
+                        { deleteItemFromUser !== null ?
+                            <React.Fragment>
+                                <TouchableOpacity  style={[styles.itemElement, styles.flex1]} onPress={() => deleteItemFromUser(shallowItem.id) }> 
+                                    <Icon name='remove'></Icon>
+                                </TouchableOpacity>
+                                <View style={[styles.itemElement, styles.flex4]}> 
+                                    <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
+                                </View>
+                                <View style={[styles.itemElement, styles.flex2]}> 
+                                    <Text style={styles.itemTextSm}>{ parseFloatZero0( 100* shares / shallowItem.totalShares) + "%"}</Text>
+                                </View>
+                                <View style={[styles.itemElement, styles.flex1]}> 
+                                    <Text style={styles.itemTextSm}>{shares}</Text>
+                                </View>
+                            </React.Fragment>
                             :
-                            <View style={[styles.itemElement, styles.flex2]}> 
-                                <Text style={styles.itemTextSm}>{ shallowItem.cost }</Text>
-                            </View>
-                            }
-                            { shares !== null &&
-                            <View style={[styles.itemElement, styles.flex1]}> 
-                                <Text style={styles.itemTextSm}>{shares}</Text>
-                            </View>
-                            }
-                        </React.Fragment>
+                            
+                            <React.Fragment>
+                                <View style={[styles.itemElement, styles.flex4]}> 
+                                    <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
+                                </View>
+                                <View style={[styles.itemElement, styles.flex2]}> 
+                                    <Text style={styles.itemTextSm}>{'$' + coalesce(shallowItem.cost,'N/A') }</Text>
+                                </View>
+                            </React.Fragment>
                         }
+                        </React.Fragment>
+                    }
                     </React.Fragment> 
                 } 
             </View>
