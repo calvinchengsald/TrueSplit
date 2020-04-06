@@ -50,12 +50,12 @@ export default class SplitScreen extends Component {
                 // {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Pizza', cost: '8' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '10', taxable: false, split: false , totalShares: 0}
+                // {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '10', taxable: false, split: false , totalShares: 0}
             ],
             users: [
-                {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false},
-                {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false},
-                {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false}
+                // {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false},
+                // {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false},
+                // {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false}
             ],
             dragging: false,
             itemIdx: -1,
