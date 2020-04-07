@@ -41,6 +41,8 @@ export default class SplitScreen extends Component {
         validTotal: false,
         validSubtotal: false,
         validBillValues: true,
+        validTax2: true,
+        validTax3: true,
         allItemsSplit: true,
     }
     constructor(props){
@@ -279,7 +281,11 @@ export default class SplitScreen extends Component {
                         taxableTotal += parseFloat(hashedItems[item.id].cost);
                     }
                 })
-
+                // invalid if all items are non-taxable but user enters a tax
+                this.billVariables.validTax2 = taxableTotal!==0 || this.billVariables.billTax === 0;
+                // invalid if any items are taxable but user doesnt enter any tax
+                this.billVariables.validTax3 = taxableTotal===0 || this.billVariables.billTax !== 0;
+                this.billVariables.validTax = this.billVariables.validTax && this.billVariables.validTax2 && this.billVariables.validTax3
                 users.map( (user) => {
                     user.billSubtotal = 0;
                     var billSubtotalTaxable = 0;
@@ -314,7 +320,16 @@ export default class SplitScreen extends Component {
 
         // find status of this calculation:
         var statusInformation = "All calculated"
-        if(!this.billVariables.validBillValues) {
+        //specific tax cases
+        if(!this.billVariables.validTax2){
+            // invalid if all items are non-taxable but user enters a tax
+            statusInformation = "Tax is present but all items are marked as non-taxable"
+        }
+        else if(!this.billVariables.validTax3){
+            // invalid if any items are taxable but user doesnt enter any tax
+            statusInformation = "Items are taxable but no tax is entered"
+        }
+        else if(!this.billVariables.validBillValues) {
             statusInformation = "Please fix bill values in Red"
         }
         else if(!this.billVariables.allItemsSplit){
@@ -419,11 +434,12 @@ export default class SplitScreen extends Component {
         // keeps track of which user had which extra cent, sorted
         var extraCentArray = [];
         var totalExtraCents = 0.0;
+        
         users.map(user => {
             var extraCents = Math.abs(user.billTotal*100  - parseInt(user.billTotal*100) );
             totalExtraCents += extraCents;
             extraCentArray.push({id: user.id, extraCents: extraCents});
-            user.billTotal = parseFloat(user.billTotal.toFixed(2));
+            user.billTotal = parseFloat(  parseInt(user.billTotal*100)/100 );
             hashedUsers[user.id] = user;
         })
 
@@ -436,6 +452,7 @@ export default class SplitScreen extends Component {
         for(var i = 0; i< centsToSplit; i++){
             hashedUsers[extraCentArray[i]["id"]].billTotal += 0.01;
         }
+
 
         //store the user back into the list format
         users.map( user => {
@@ -500,9 +517,9 @@ export default class SplitScreen extends Component {
         this.billVariables.billTotal = parseFloatZero(this.billVariables.billTotal);
 
 
-        this.billVariables.validSubtotal =  this.billVariables.billSubtotal >= 0 ;
-        this.billVariables.validTax =  this.billVariables.billTax >= 0 ;
-        this.billVariables.validTip = this.billVariables.billTip >= 0;
+        this.billVariables.validSubtotal =  this.billVariables.billSubtotal > 0 ;
+        this.billVariables.validTax =  this.billVariables.billTax >= 0 - TOLERANCE;
+        this.billVariables.validTip = this.billVariables.billTip >= 0 - TOLERANCE;
         this.billVariables.validTotal = this.billVariables.billTotal > 0 && this.billVariables.billTotal >= this.billVariables.billSubtotal;
 
         if(Math.abs(this.billVariables.billTotal - (this.billVariables.billSubtotal + this.billVariables.billTax + this.billVariables.billTip)) > TOLERANCE) {
@@ -663,10 +680,10 @@ export default class SplitScreen extends Component {
                     </ScrollView>
                     
         
-                    <View style={[styles.statusBar, (!this.billVariables.allItemsSplit || !this.billVariables.validBillValues) && styles.statusBarError ]}>
+                    <View style={[styles.statusBar, (!this.billVariables.allItemsSplit || !this.billVariables.validBillValues || !this.billVariables.validTax2 || !this.billVariables.validTax3) && styles.statusBarError ]}>
                         
                         <View style={[{flex: 4}]}>
-                            <Text style={[styles.statusInformation,(!this.billVariables.allItemsSplit || !this.billVariables.validBillValues) && styles.statusInformationError ]}>{this.state.statusInformation} </Text>
+                            <Text style={[styles.statusInformation,(!this.billVariables.allItemsSplit || !this.billVariables.validBillValues || !this.billVariables.validTax2 || !this.billVariables.validTax3) && styles.statusInformationError ]}>{this.state.statusInformation} </Text>
                         </View>
                         <View style={[{flex: 1} , styles.centralButtonHolder]} >
                             <Icon name="settings-backup-restore" color="red" onPress={()=>this.resetAll()}></Icon>

@@ -2,7 +2,7 @@ import React from 'react'
 import {   StyleSheet, Text, TouchableOpacity, View,TextInput } from 'react-native';
 // import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import {Icon} from 'react-native-elements'
-import {standardizeNumber,parseFloatZero, parseFloatZero2,parseFloatZero0, coalesce} from '../utility/utils'
+import {standardizeNumber,parseFloatZero, parseFloatZero2,parseFloatZero0, coalesceZero,coalesce} from '../utility/utils'
 
 const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFromUser, shares }) => {
 
@@ -31,7 +31,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                         </View>
                         
                         <View style={[styles.itemElement, styles.flex2]}> 
-                            <TextInput style={styles.itemText}  defaultValue={coalesce( (shallowItem.cost).replace(/[^0-9.\- ]/,''), '0')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, item.cost, editItem) } keyboardType='numeric'/>
+                            <TextInput style={styles.itemText}  placeholder='0' placeholderTextColor='#9c9191' defaultValue={coalesceZero( (shallowItem.cost).replace(/[^0-9.\- ]/,''), '')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, item.cost, editItem) } keyboardType='numeric'/>
                         </View>
                         
                         <View style={[styles.itemElement, styles.flex1]}> 
