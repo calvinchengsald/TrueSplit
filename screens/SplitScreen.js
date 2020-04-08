@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import {  StyleSheet, Text, TouchableOpacity, View, FlatList, PanResponder, Animated ,TextInput, Alert} from 'react-native';
 import {  ScrollView } from 'react-native-gesture-handler';
-import Item  from '../components/Item'
+import Item, {ITEM_VIEW_TYPE}  from '../components/Item'
 import User  from '../components/User'
 import uuid from 'react-uuid';
 import {Icon} from 'react-native-elements'
@@ -549,10 +549,10 @@ export default class SplitScreen extends Component {
     }
 
     render() {
-        const renderedItem = ({item, index}) => (
+        const renderedItem = ({item, index, itemViewType}) => (
             <View style={index===this.state.itemIdx && styles.dragSoruce} 
             >
-                <Item  key={item.id} panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable}></Item>
+                <Item  key={item.id} panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable} itemViewType={itemViewType}></Item>
             </View>
         )
         
@@ -580,7 +580,8 @@ export default class SplitScreen extends Component {
                     }}>
 
                         {renderedItem({
-                            item: this.state.items[this.state.itemIdx]
+                            item: this.state.items[this.state.itemIdx],
+                            itemViewType: ITEM_VIEW_TYPE.ITEM_ACTUAL
                         })}
                     </View>
                 </Animated.View>
@@ -615,13 +616,18 @@ export default class SplitScreen extends Component {
                     </View>
 
                     {renderedItem({
-                            item: {id:'HEADER', editable: false, name: 'Name', cost: '$' , taxable: true, forceUpdate: 0}
+                            item: {id:'HEADER', editable: false, name: 'Name', cost: '$' , taxable: true, forceUpdate: 0, },
+                            itemViewType: ITEM_VIEW_TYPE.ITEM_HEADER
                     })}
                     <FlatList 
                         scrollEnabled={!this.state.dragging}
                         style={styles.itemListHolder}
                         data={this.state.items}
-                        renderItem={renderedItem}
+                        renderItem={({item, index}) => renderedItem({
+                            item: item,
+                            index: index,
+                            itemViewType: ITEM_VIEW_TYPE.ITEM_ACTUAL
+                        })}
                         onScroll={ e => {
                             this.screenVariables.scrollOffsetY = e.nativeEvent.contentOffset.y;
                         }}
