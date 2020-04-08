@@ -1,8 +1,7 @@
 import React from 'react'
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View, FlatList,TextInput, Alert } from 'react-native';
 import {Icon} from 'react-native-elements'
-import Item from './Item'
-
+import Item ,{ITEM_VIEW_TYPE } from './Item'
 const User =  ({user, deleteUser,editUser, items,panResponder }) => {
     var shallowUser = {
         id : user.id,
@@ -30,8 +29,10 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
                 
             </View>
             <View style={styles.userItemView}>
+                <Item key="HEADER" item={ {id:"HEADER", name:"Item" , cost:"%", editable:false}} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_HEADER} editable={false} deleteItemFromUser={null}></Item>
+            
                 {userItems.map(item => (
-                            <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
+                            <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_ACTUAL} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
                 ))}
             </View>
             
@@ -39,7 +40,7 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
             <Item key="TAX" item={ {id:"TAX", name:"TAX" , cost:shallowUser.billTax, editable:false}} editable={false} deleteItemFromUser={null}></Item>
             <Item key="TIP" item={ {id:"TIP", name:"TIP" , cost:shallowUser.billTip, editable:false}} editable={false} deleteItemFromUser={null}></Item> */}
             <View style={styles.billDetailView}>
-                <Item key="TOTAL" item={ {id:"TOTAL", name:"TOTAL" , cost:shallowUser.billTotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
+                <Item key="TOTAL" item={ {id:"TOTAL", name:"TOTAL" , cost:shallowUser.billTotal, editable:false}} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_BILL} editable={false} deleteItemFromUser={null}></Item>
             </View>
                     
         </View>
