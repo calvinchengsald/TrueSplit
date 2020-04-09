@@ -552,7 +552,7 @@ export default class SplitScreen extends Component {
         const renderedItem = ({item, index, itemViewType}) => (
             <View style={index===this.state.itemIdx && styles.dragSoruce} 
             >
-                <Item  key={item.id} panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable} itemViewType={itemViewType}></Item>
+                <Item  key={"item_" +itemViewType+"_" + item.id } panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable} itemViewType={itemViewType}></Item>
             </View>
         )
         

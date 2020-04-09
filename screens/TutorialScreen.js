@@ -6,7 +6,7 @@ export default class TutorialScreen extends Component {
         return (
             <View style={styles.container}>
                 <Text>
-                im help
+                im help 3
 
                 </Text>
             </View>
