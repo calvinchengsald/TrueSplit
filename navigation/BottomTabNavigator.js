@@ -16,6 +16,7 @@ export default function BottomTabNavigator({ navigation, route }) {
   return (
     <BottomTab.Navigator initialRouteName={INITIAL_ROUTE_NAME}>
       <BottomTab.Screen
+        id="tab_tutorial"
         name="Tutorial"
         component={TutorialScreen}
         options={{
@@ -24,6 +25,7 @@ export default function BottomTabNavigator({ navigation, route }) {
         }}
       />
       <BottomTab.Screen
+        key="tab_split"
         name="Split"
         component={SplitScreen}
         options={{
