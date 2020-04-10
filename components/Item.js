@@ -55,9 +55,9 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                     </View>
                     
                     <View style={[styles.itemElement, styles.flex2]}> 
-                        <TextInput style={styles.itemText}  placeholder='0' placeholderTextColor='#9c9191' defaultValue={coalesceZero( (shallowItem.cost).replace(/[^0-9.\- ]/,''), '')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, item.cost, editItem) } keyboardType='numeric'/>
+                        {/* <TextInput style={styles.itemText}  placeholder='0' placeholderTextColor='#9c9191' defaultValue={coalesceZero( (shallowItem.cost).replace(/[^0-9.\- ]/,''), '')} onBlur={(e)=>setItemCost(e, shallowItem, item.cost, editItem)}  keyboardType='numeric'/> */}
+                        <TextInput style={styles.itemText}  placeholder='0' placeholderTextColor='#9c9191' defaultValue={coalesceZero( (shallowItem.cost).replace(/[^0-9.\- ]/,''), '')} onEndEditing={(obj)=> setItemCost(obj.nativeEvent.text,shallowItem, item.cost, editItem) }  keyboardType='numeric'/>
                     </View>
-                    
                     <View style={[styles.itemElement, styles.flex1]}> 
                         <Icon onPress={()=>setItemTaxable(shallowItem, editItem)} name={shallowItem.taxable?"check":"close"}></Icon>
                     </View>
@@ -132,6 +132,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
 }
 
 const setItemCost = (text, item, origionalCost, editItem) => {
+    console.log(text)
     var finalCost = standardizeNumber(text);
     //because react native only detects change, we need to force a change here in case the rounded decimal is the same as the starting one
     
