@@ -5,7 +5,8 @@ TODO:
 -Tutorial Page
 -App Icon
 -Add user/item button should instead have a poopup modal
--onBlur does not work for testing, add an onBlur isntead of onEndEditing for these input values
+- expo cannot simulate onInputChange/onEndEditing for webmodel version, so cannot test on cypress
+
 
 
 DONE:
