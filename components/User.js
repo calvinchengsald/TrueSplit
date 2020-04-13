@@ -2,6 +2,8 @@ import React from 'react'
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View, FlatList,TextInput, Alert } from 'react-native';
 import {Icon} from 'react-native-elements'
 import Item ,{ITEM_VIEW_TYPE } from './Item'
+import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
+
 const User =  ({user, deleteUser,editUser, items,panResponder }) => {
     var shallowUser = {
         id : user.id,
@@ -12,6 +14,7 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
         billTax: user.billTax,
         billTip: user.billTip,
         billTotal: user.billTotal,
+        showItems: user.showItems,
     };
     var userItems = getUserItems(shallowUser, items);
 
@@ -29,11 +32,17 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
                 
             </View>
             <View style={styles.userItemView}>
-                <Item key="HEADER" item={ {id:"HEADER", name:"Item" , cost:"%", editable:false}} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_HEADER} editable={false} deleteItemFromUser={null}></Item>
-            
-                {userItems.map(item => (
-                            <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_ACTUAL} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
-                ))}
+                <Collapse isCollapsed={true} >
+                    <CollapseHeader>
+                        <Item key="HEADER" item={ {id:"HEADER", name:"Item" , cost:"%", editable:false}} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_HEADER} editable={false} deleteItemFromUser={null}></Item>
+                    </CollapseHeader>
+                    <CollapseBody>
+                        {userItems.map(item => (
+                                    <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_ACTUAL} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
+                        ))}
+                    </CollapseBody>
+                    
+                </Collapse>
             </View>
             
             {/* <Item key="SUBTOTAL" item={ {id:"SUBTOTAL", name:"SUBTOTAL" , cost:shallowUser.billSubtotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
