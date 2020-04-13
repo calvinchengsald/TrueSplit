@@ -6,7 +6,7 @@ import User  from '../components/User'
 import uuid from 'react-uuid';
 import {Icon} from 'react-native-elements'
 import {DRAG_EVENT_SOURCE, TOLERANCE} from '../constants/DragEventSource';
-import {standardizeNumber,parseFloatZero, parseFloatZero2,sortObjectArrayByKey} from '../utility/utils'
+import {standardizeNumber,parseFloatZero, parseFloatZero2,sortObjectArrayByKey} from '../utility/utils';
 
 
 export default class SplitScreen extends Component {
@@ -55,9 +55,9 @@ export default class SplitScreen extends Component {
                 // {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '10', taxable: false, split: false , totalShares: 0}
             ],
             users: [
-                // {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false},
-                // {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false},
-                // {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false}
+                // {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
+                // {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false, showItems: true},
+                {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false, showItems: true}
             ],
             dragging: false,
             itemIdx: -1,
@@ -400,6 +400,7 @@ export default class SplitScreen extends Component {
         var newUser = {
             id: uuid(),
             name: '',
+            showItems: true,
             itemList: {}
         };
         var userList = this.state.users;
@@ -730,13 +731,12 @@ const styles = StyleSheet.create({
     userList: {
         borderColor: '#300429',
         borderWidth: 1,
-        flexDirection: 'row',
-        flexWrap: 'wrap'
+        width: "100%"
     },
     user: {
-        width: "50%",
         borderColor: '#300429',
         borderWidth: 1,
+        width: '100%'
     },
     userHighlight: {
         backgroundColor: '#ffff00'
