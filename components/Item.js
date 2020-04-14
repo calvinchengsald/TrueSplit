@@ -28,7 +28,6 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
             <View style={[styles.item, styles.header]}>
                 <View style={styles.itemView}> 
                     <View  style={[styles.itemElement, styles.flex1]}> 
-                        <Icon name='list'></Icon>
                     </View>
                     <View style={[styles.itemElement, styles.flex4]}> 
                         <Text style={styles.itemText}>{shallowItem.name}</Text>
@@ -48,7 +47,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
             <View style={[styles.item,  shallowItem.split && shallowItem.editable && styles.itemSplit]}>
                 <View style={styles.itemView}>  
                     <View  { ...panResponder.panHandlers} style={[styles.itemElement, styles.flex1]}> 
-                        <Icon name='list'></Icon>
+                        <Icon name='drag-handle'></Icon>
                     </View>
                     <View style={[styles.itemElement, styles.flex4]}> 
                         <TextInput style={styles.itemText} placeholder='Name' placeholderTextColor='#9c9191' defaultValue={shallowItem.name}      onEndEditing={(obj)=> setItemName(obj.nativeEvent.text,shallowItem, editItem) }/>
@@ -89,14 +88,14 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                     <TouchableOpacity  style={[styles.itemElement, styles.flex1]} onPress={() => deleteItemFromUser(shallowItem.id) }> 
                         <Icon name='remove'></Icon>
                     </TouchableOpacity>
-                    <View style={[styles.itemElement, styles.flex4]}> 
+                    <View style={[styles.itemElement, {flex: 5}]}> 
                         <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
                     </View>
                     <View style={[styles.itemElement, styles.flex2]}> 
                         <Text style={styles.itemTextSm}>{ parseFloatZero0( 100* shares / shallowItem.totalShares) + "%"}</Text>
                     </View>
-                    <View style={[styles.itemElement, styles.flex1]}> 
-                        <Text style={styles.itemTextSm}>{shares}</Text>
+                    <View style={[styles.itemElement, styles.flex2]}> 
+                        <Text style={styles.itemTextSm}>{shares + ' share(s)'}</Text>
                     </View>
                 </View>             
             </View>
@@ -158,8 +157,10 @@ export default Item;
 const styles = StyleSheet.create({
     item: {
         backgroundColor: '#9fcfed',
-        borderWidth: 2,
-        borderColor: '#416982'
+        borderWidth: 1,
+        borderColor: '#416982',
+        marginLeft: 5,
+        marginRight: 5,
     },
     header: {
         backgroundColor: '#b342eb',
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
     itemTextSm: {
-        fontSize: 10,
+        fontSize: 12,
     },
     itemTextXSm: {
         fontSize: 9,
