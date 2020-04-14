@@ -3,6 +3,7 @@ import { Image, Platform, StyleSheet, Text, TouchableOpacity, View, FlatList,Tex
 import {Icon} from 'react-native-elements'
 import Item ,{ITEM_VIEW_TYPE } from './Item'
 import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
+import {coalesce } from '../utility/utils'
 
 const User =  ({user, deleteUser,editUser, items,panResponder }) => {
     var shallowUser = {
@@ -21,22 +22,28 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
     return (
         <View style={styles.user}>
             
-            <View style={styles.userView}> 
-                <React.Fragment>
-                    <View style={styles.userElement}> 
-                        <TextInput style={styles.itemText} defaultValue={shallowUser.name}   placeholder="Name"  placeholderTextColor='#9c9191'    onChangeText={(text)=>shallowUser.name=text} onEndEditing={()=> setUserName(shallowUser, editUser) }/>
-                    </View>
-                    <Icon color='#8b0000' name='delete' onPress={()=>confirmDeleteUser(deleteUser,shallowUser)}></Icon>
-
-                </React.Fragment>
                 
-            </View>
             <View style={styles.userItemView}>
                 <Collapse isCollapsed={true} >
-                    <CollapseHeader>
-                        <Item key="HEADER" item={ {id:"HEADER", name:"Item" , cost:"%", editable:false}} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_HEADER} editable={false} deleteItemFromUser={null}></Item>
+                    <CollapseHeader style={styles.userView}>
+                        <View style={{flex: 1}}>
+                            <Icon  color='black' name='list' ></Icon>
+                        </View>
+                        <View  style={{flex: 4}}> 
+                            <TextInput style={{textAlign: 'left'}} defaultValue={shallowUser.name}   placeholder="Name"  placeholderTextColor='#9c9191'    onChangeText={(text)=>shallowUser.name=text} onEndEditing={()=> setUserName(shallowUser, editUser) }/>
+                        </View>
+                        <Text  style={{flex: 3}}>
+                            {"Total: $" + coalesce(shallowUser.billTotal,'N/A') }
+                        </Text>
+                        <View style={{flex: 1}}>
+                            <Icon  color='#8b0000' name='delete' onPress={()=>confirmDeleteUser(deleteUser,shallowUser)}></Icon>
+                        </View>
                     </CollapseHeader>
                     <CollapseBody>
+                        {userItems.length===0 && 
+                            <Text style={ styles.item}> Drag items here</Text>
+
+                        }
                         {userItems.map(item => (
                                     <Item key={item.id} item={item} editable={false} panResponder={panResponder} shares={shallowUser.itemList[item.id]} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_ACTUAL} deleteItemFromUser={(itemId)=>deleteItemFromUser(shallowUser, itemId, editUser)}></Item>
                         ))}
@@ -48,9 +55,7 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
             {/* <Item key="SUBTOTAL" item={ {id:"SUBTOTAL", name:"SUBTOTAL" , cost:shallowUser.billSubtotal, editable:false}} editable={false} deleteItemFromUser={null}></Item>
             <Item key="TAX" item={ {id:"TAX", name:"TAX" , cost:shallowUser.billTax, editable:false}} editable={false} deleteItemFromUser={null}></Item>
             <Item key="TIP" item={ {id:"TIP", name:"TIP" , cost:shallowUser.billTip, editable:false}} editable={false} deleteItemFromUser={null}></Item> */}
-            <View style={styles.billDetailView}>
-                <Item key="TOTAL" item={ {id:"TOTAL", name:"TOTAL" , cost:shallowUser.billTotal, editable:false}} itemViewType={ITEM_VIEW_TYPE.USER_ITEM_BILL} editable={false} deleteItemFromUser={null}></Item>
-            </View>
+            
                     
         </View>
     )
@@ -103,19 +108,15 @@ const styles = StyleSheet.create({
     user: {
         flex: 1,
         margin: 2,
-        backgroundColor: '#9fcfed',
+        backgroundColor: '#b342eb',
         borderWidth: 2,
-        borderColor: '#416982',
-        paddingBottom: 20
+        borderColor: '#416982'
     },
     userView: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
+        justifyContent: 'space-evenly',
         alignItems: 'center',
-        marginRight: 10
-    },
-    userElement: {
-        margin:2,
+        marginRight: 10,
     },
     userText: {
         fontSize: 15,
@@ -124,6 +125,13 @@ const styles = StyleSheet.create({
     },
     billDetailView: {
         justifyContent: 'flex-end',
-    }
+    },
+    item: {
+        padding: 5,
+        backgroundColor: '#9fcfed',
+        borderWidth: 2,
+        borderColor: '#416982',
+        textAlign: 'center'
+    },
 });
   

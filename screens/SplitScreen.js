@@ -57,7 +57,7 @@ export default class SplitScreen extends Component {
             users: [
                 // {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
                 // {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false, showItems: true},
-                {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false, showItems: true}
+                // {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false, showItems: true}
             ],
             dragging: false,
             itemIdx: -1,
