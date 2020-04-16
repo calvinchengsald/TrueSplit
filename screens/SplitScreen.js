@@ -20,6 +20,7 @@ export default class SplitScreen extends Component {
         itemlistTopOffset : 0,
         itemlistHeight: 0,
         itemHeight : 0,
+        itemWidth : 0,
         itemIdx : -1,
         rootViewOffsetY : 0,
         userlistTopOffset : 0,
@@ -49,13 +50,13 @@ export default class SplitScreen extends Component {
         super(props);
         this.state = {
             items: [
-                // {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
-                // {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
+                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
+                {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Pizza', cost: '8' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '10', taxable: false, split: false , totalShares: 0}
             ],
             users: [
-                // {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
+                {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
                 // {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false, showItems: true},
                 // {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false, showItems: true}
             ],
@@ -552,6 +553,10 @@ export default class SplitScreen extends Component {
     render() {
         const renderedItem = ({item, index, itemViewType}) => (
             <View style={index===this.state.itemIdx && styles.dragSoruce} 
+            onLayout={e => {
+                this.screenVariables.itemHeight = e.nativeEvent.layout.height;
+                this.screenVariables.itemWidth = e.nativeEvent.layout.width;
+            }}
             >
                 <Item  key={"item_" +itemViewType+"_" + item.id } panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable} itemViewType={itemViewType}></Item>
             </View>
@@ -571,20 +576,16 @@ export default class SplitScreen extends Component {
                 style={[styles.dragItem,
                     {
                         top: this.point.getLayout().top,
-                        left: this.point.getLayout().left
+                        left: this.point.getLayout().left,
+                        width: this.screenVariables.itemWidth/2,
+                        height: this.screenVariables.itemHeight
                     }
                 ]} 
                 >
-                    <View style={{width:'auto'}}
-                    onLayout={e => {
-                        this.screenVariables.itemHeight = e.nativeEvent.layout.height;
-                    }}>
-
-                        {renderedItem({
-                            item: this.state.items[this.state.itemIdx],
-                            itemViewType: ITEM_VIEW_TYPE.ITEM_ACTUAL
-                        })}
+                    <View style={{flex:1}}>
+                        <Icon name='drag-handle' color='black'></Icon>
                     </View>
+                    <Text style={{flex:3, textAlign: 'center'}}>{this.state.items[this.state.itemIdx].name}</Text>
                 </Animated.View>
                 }
                 <View style={styles.container} 
@@ -729,17 +730,19 @@ const styles = StyleSheet.create({
         borderWidth: 1
     },
     userList: {
-        borderColor: '#300429',
-        borderWidth: 1,
         width: "100%"
     },
     user: {
-        borderColor: '#300429',
-        borderWidth: 1,
-        width: '100%'
+        width: '100%',
     },
     userHighlight: {
-        backgroundColor: '#ffff00'
+        backgroundColor: '#ffff00',
+        borderColor: '#ffff00',
+        borderWidth: 2,
+        paddingBottom: 2,
+        paddingRight: 2,
+        paddingLeft: 0,
+        paddingTop: 0
     },
     itemOptions: {
         flexDirection: 'row',
@@ -757,7 +760,11 @@ const styles = StyleSheet.create({
     dragItem:{
         zIndex: 2,
         position: 'absolute',
-        width: '100%'
+        backgroundColor: '#9fcfed',
+        borderWidth: 1,
+        borderColor: '#416982',
+        alignItems: 'center',
+        flexDirection: 'row'
     },
     dragSoruce:{
         opacity: 0.3
