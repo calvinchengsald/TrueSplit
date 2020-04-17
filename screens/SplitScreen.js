@@ -306,14 +306,10 @@ export default class SplitScreen extends Component {
                     return user;
                 })
 
-                console.log("before")
-                console.log(users);
                 //since all these values are exact, we need to display the rounded pretty values for each user.
                 //rounding can differ though and exact values will be off by 0.01cent when multiple people is involved.
                 users = this.distributeTotalWithRounding(users);
 
-                console.log("after")
-                console.log(users);
             }
         }
 
