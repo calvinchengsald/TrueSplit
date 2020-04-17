@@ -1,5 +1,5 @@
 import React from 'react'
-import {   StyleSheet, Text, TouchableOpacity, View,TextInput } from 'react-native';
+import {   StyleSheet, Text, TouchableOpacity, View,TextInput, Alert} from 'react-native';
 // import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import {Icon} from 'react-native-elements'
 import {standardizeNumber,parseFloatZero, parseFloatZero2,parseFloatZero0, coalesceZero,coalesce} from '../utility/utils'
@@ -38,6 +38,9 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                     <View style={[styles.itemElement, styles.flex1]}> 
                         <Text style={[styles.itemTxText, shallowItem.taxable && styles.itemTxTextTaxable]}>Tax</Text>
                     </View>
+                    <View style={[styles.itemElement, styles.flex1]}> 
+                        <Icon name='delete' color='#8b0000'></Icon>
+                    </View>
                 </View>
             </View>
         )
@@ -59,6 +62,9 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                     </View>
                     <View style={[styles.itemElement, styles.flex1]}> 
                         <Icon onPress={()=>setItemTaxable(shallowItem, editItem)} name={shallowItem.taxable?"check":"close"}></Icon>
+                    </View>
+                    <View style={[styles.itemElement, styles.flex1]}> 
+                        <Icon name='delete' color='#8b0000' onPress={()=>confirmDeleteItem(deleteItem,shallowItem)} ></Icon>
                     </View>
                 </View>
             </View>
@@ -83,10 +89,10 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
     }
     else if ( itemViewType === ITEM_VIEW_TYPE.USER_ITEM_ACTUAL) {
         return (
-            <View style={[styles.item]}>
+            <View style={[styles.item, styles.userItemActual]}>
                 <View style={styles.itemView}>  
                     <TouchableOpacity  style={[styles.itemElement, styles.flex1]} onPress={() => deleteItemFromUser(shallowItem.id) }> 
-                        <Icon name='remove'></Icon>
+                        <Icon name='remove-circle' color='#8b0000'></Icon>
                     </TouchableOpacity>
                     <View style={[styles.itemElement, {flex: 5}]}> 
                         <Text style={styles.itemTextSm}>{shallowItem.name}</Text>
@@ -151,6 +157,20 @@ const setItemTaxable = (item ,editItem) => {
     editItem(item);
 }
 
+const confirmDeleteItem = (deleteItem, item) => {
+    Alert.alert(
+        'Delete Item',
+        'Are you sure you want to delete: '+item.name+'?',
+        [
+            
+            {text: 'Cancel', onPress: () => {}},
+            {text: 'OK', onPress: () => {deleteItem(item.id)}, style: 'cancel'},
+        ],
+        { cancelable: false }
+    )
+    
+}
+
 export default Item; 
 
 
@@ -159,8 +179,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#9fcfed',
         borderWidth: 1,
         borderColor: '#416982',
-        marginLeft: 5,
-        marginRight: 5,
     },
     header: {
         backgroundColor: '#b342eb',
@@ -171,6 +189,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#D3D3D3',
         borderColor: '#416982',
         borderWidth: 2,
+    },
+    userItemActual: {
+        marginLeft: 2,
+        marginRight: 2,
     },
     itemView: {
         flexDirection: 'row',

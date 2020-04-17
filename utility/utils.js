@@ -22,15 +22,17 @@ export const parseFloatZero = (str) => {
     }
     return result;
 }
+
+//returns a string version, to 2 digit precision
 export const parseFloatZero2 = (str) => {
-    var result = isNaN(str)?"0":( isNaN(parseFloat(str))?0:parseFloat(str).toFixed(2)   );
+    var result = isNaN(str)?"0":( isNaN(parseFloat(str))?"0.00":parseFloat(str).toFixed(2)   );
     if(result === "-0.00"){
         return "0.00";
     }
     return result;
 }
 export const parseFloatZero0 = (str) => {
-    var result = isNaN(str)?"0":( isNaN(parseFloat(str))?0:parseFloat(str).toFixed(0)   );
+    var result = isNaN(str)?"0":( isNaN(parseFloat(str))?"0":parseFloat(str).toFixed(0)   );
     if(result === "-0"){
         return "0";
     }
