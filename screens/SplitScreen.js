@@ -50,13 +50,13 @@ export default class SplitScreen extends Component {
         super(props);
         this.state = {
             items: [
-                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
+                // {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
+                // {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Pizza', cost: '8' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '10', taxable: false, split: false , totalShares: 0}
             ],
             users: [
-                {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
+                // {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
                 // {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false, showItems: true},
                 // {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false, showItems: true}
             ],
@@ -121,9 +121,9 @@ export default class SplitScreen extends Component {
                         this.editUser(updatedUser)
                     }
                     // hoverd over delete button?
-                    else if (this.screenVariables.itemIdx !== -1 && this.findHoverOverDelete(gestureState.moveX,gestureState.moveY)){
-                        this.deleteItem(this.state.items[this.screenVariables.itemIdx].id);
-                    }
+                    // else if (this.screenVariables.itemIdx !== -1 && this.findHoverOverDelete(gestureState.moveX,gestureState.moveY)){
+                    //     this.deleteItem(this.state.items[this.screenVariables.itemIdx].id);
+                    // }
                 }
 
                 
@@ -204,15 +204,16 @@ export default class SplitScreen extends Component {
         return "";
     }
 
-    findHoverOverDelete = (x,y) => {
-        var yy = y - this.screenVariables.rootViewOffsetY - this.screenVariables.containerViewOffsetY;
-        var xx = x - this.screenVariables.containerViewOffsetX;
-        if( xx>=this.screenVariables.deleteBoxPoints.x0 && xx<=this.screenVariables.deleteBoxPoints.x1 &&
-            yy>=this.screenVariables.deleteBoxPoints.y0 && yy<=this.screenVariables.deleteBoxPoints.y1){
-            return true
-        }
-        return false
-    }
+    // No longer needed , implement a direct trash button
+    // findHoverOverDelete = (x,y) => {
+    //     var yy = y - this.screenVariables.rootViewOffsetY - this.screenVariables.containerViewOffsetY;
+    //     var xx = x - this.screenVariables.containerViewOffsetX;
+    //     if( xx>=this.screenVariables.deleteBoxPoints.x0 && xx<=this.screenVariables.deleteBoxPoints.x1 &&
+    //         yy>=this.screenVariables.deleteBoxPoints.y0 && yy<=this.screenVariables.deleteBoxPoints.y1){
+    //         return true
+    //     }
+    //     return false
+    // }
     
     // From the X,Y coordinate of the initial drag point, find what item is the drag being applied to
     findItemIndexFromY = (y) => {
@@ -279,7 +280,7 @@ export default class SplitScreen extends Component {
                 items.map( (item)=> {
                     hashedItems[item.id] = item;
                     if (hashedItems[item.id].taxable){
-                        taxableTotal += parseFloat(hashedItems[item.id].cost);
+                        taxableTotal += parseFloatZero(hashedItems[item.id].cost);
                     }
                 })
                 // invalid if all items are non-taxable but user enters a tax
@@ -297,7 +298,7 @@ export default class SplitScreen extends Component {
                             billSubtotalTaxable += parseFloatZero(hashedItems[itemKey].cost) * user.itemList[itemKey] / hashedItems[itemKey].totalShares;
                         }
                     })
-                    user.billTax = this.billVariables.billTax * billSubtotalTaxable/taxableTotal
+                    user.billTax = this.billVariables.billTax * parseFloatZero(billSubtotalTaxable/taxableTotal)
                     user.billTip = this.billVariables.billTip * user.billSubtotal/this.billVariables.billSubtotal
                     user.billTotal =  user.billSubtotal + user.billTax + user.billTip;
 
@@ -551,6 +552,7 @@ export default class SplitScreen extends Component {
     }
 
     render() {
+
         const renderedItem = ({item, index, itemViewType}) => (
             <View style={index===this.state.itemIdx && styles.dragSoruce} 
             onLayout={e => {
@@ -559,6 +561,142 @@ export default class SplitScreen extends Component {
             }}
             >
                 <Item  key={"item_" +itemViewType+"_" + item.id } panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable} itemViewType={itemViewType}></Item>
+            </View>
+        )
+        
+        const renderPopupItem = () => (
+            <Animated.View 
+            style={[styles.dragItem,
+                {
+                    top: this.point.getLayout().top,
+                    left: this.point.getLayout().left,
+                    width: this.screenVariables.itemWidth/2,
+                    height: this.screenVariables.itemHeight
+                }
+            ]} 
+            >
+                <View style={{flex:1}}>
+                    <Icon name='drag-handle' color='black'></Icon>
+                </View>
+                <Text style={{flex:3, textAlign: 'center'}}>{this.state.items[this.state.itemIdx].name}</Text>
+            </Animated.View>
+        )
+
+        const renderToolbarContainer = () => (
+            <View style={styles.toolbarContainer}>
+                <TouchableOpacity style={styles.toolbarItem} onPress={()=>this.addItem()}>
+                    <Icon name='add' color='blue'></Icon>
+                    <Icon name='local-grocery-store' color='blue'></Icon>
+                </TouchableOpacity>
+                
+                <View style={styles.toolbarReset}  >
+                    <Text style={styles.resetButton} onPress={()=>this.resetAll()} >Reset All</Text>
+                    {/* <Icon name="settings-backup-restore" color="red" onPress={()=>this.resetAll()}></Icon> */}
+                </View>
+                <TouchableOpacity style={styles.toolbarUser} onPress={()=>this.addUser()}>
+                    <Icon name='add' color='blue'></Icon>
+                    <Icon name='account-circle' color='blue'></Icon>
+                </TouchableOpacity>
+                {/* <View style={styles.itemOptions} 
+                onLayout={ e => {
+                    this.screenVariables.deleteBoxPoints = {
+                        x0: e.nativeEvent.layout.x,
+                        x1: e.nativeEvent.layout.x + e.nativeEvent.layout.width,
+                        y0: e.nativeEvent.layout.y,
+                        y1: e.nativeEvent.layout.y + e.nativeEvent.layout.height,
+                    }
+                }}>
+                    <Icon name='delete' color={this.state.dragging?'red':'black'} ></Icon>
+                </View> */}
+            </View>
+        )
+
+        const renderItemHeader = () => (
+            <View>
+                {renderedItem({
+                    item: {id:'HEADER', editable: false, name: 'Item', cost: '$' , taxable: true, forceUpdate: 0, },
+                    itemViewType: ITEM_VIEW_TYPE.ITEM_HEADER
+                })}
+            </View>
+        )
+
+        const renderItemContainer = () => (
+            <FlatList 
+                scrollEnabled={!this.state.dragging}
+                style={styles.itemListHolder}
+                data={this.state.items}
+                renderItem={({item, index}) => renderedItem({
+                    item: item,
+                    index: index,
+                    itemViewType: ITEM_VIEW_TYPE.ITEM_ACTUAL
+                })}
+                onScroll={ e => {
+                    this.screenVariables.scrollOffsetY = e.nativeEvent.contentOffset.y;
+                }}
+                onLayout={ e => {
+                    this.screenVariables.itemlistTopOffset = e.nativeEvent.layout.y;
+                    this.screenVariables.itemlistHeight = e.nativeEvent.layout.height;
+                }}
+                scrollEventThrottle={16}
+            />
+        )
+        const renderBillDetail = () => (
+            <View style={styles.billDetailView}>
+                <View style={[styles.billDetailViewElement, styles.disabled,!this.state.validSubtotal && styles.billDetailInvalid]}>
+                    <Text style={[styles.billDetailText, styles.billDetailFull]} >Sub:${this.state.billSubtotal}</Text>
+                </View>
+                <View style={[styles.billDetailViewElement,!this.state.validTax && styles.billDetailInvalid, !this.state.validTip && this.state.validTotal && styles.billDetailInvalid]}>
+                    <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tax:$</Text>
+                    <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTax +""}  onChangeText={(text)=>this.handleChangeBillValues("billTax",text)} onEndEditing={()=>this.calculateBill()}/>
+                </View>
+                <View style={[styles.billDetailViewElement, styles.disabled, !this.state.validTip && styles.billDetailInvalid]}>
+                    <Text style={[styles.billDetailText, styles.billDetailFull]} >Tip:${this.state.billTip}</Text>
+                </View>
+                <View style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]}>
+                    <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
+                    <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  value={this.state.billTotal +""} onChangeText={(text)=>this.handleChangeBillValues("billTotal",text)} onEndEditing={()=>this.calculateBill()} />
+                
+                </View>
+            </View>
+        )
+        const renderUserContainer = () => (
+            <ScrollView style={styles.userListHolder} contentContainerStyle={styles.scrollChildren}
+                onScroll={ e => {
+                    this.screenVariables.userlistScrollOffsetY = e.nativeEvent.contentOffset.y;
+                }}
+                onLayout={ e => {
+                    this.screenVariables.userlistTopOffset = e.nativeEvent.layout.y;
+                    this.screenVariables.userlistHeight = e.nativeEvent.layout.height;
+                    this.screenVariables.userlistWidth = e.nativeEvent.layout.width;
+                }}
+                scrollEventThrottle={16}
+            >
+                
+                <View style={styles.userList} >
+                    {this.state.users.map( (user, index) => (
+                        <View  key={user.id} style={[styles.user , index==this.screenVariables.userIdx && styles.userHighlight]}
+                        onLayout={ e => {
+                            this.screenVariables.userBoxPoints[index] = {
+                                x0: e.nativeEvent.layout.x,
+                                x1: e.nativeEvent.layout.x + e.nativeEvent.layout.width,
+                                y0: e.nativeEvent.layout.y,
+                                y1: e.nativeEvent.layout.y + e.nativeEvent.layout.height,
+                            }
+                        }}
+                        > 
+                            <User key={user.id} user={user} panResponder={this._panResponder} deleteUser={this.deleteUser} editUser={this.editUser} items={this.state.items}></User>
+                        </View>
+                    ))}
+                </View>
+                
+            </ScrollView>
+        )
+        
+        const renderStatusBar = () => (
+            <View style={[styles.statusBar, (!this.billVariables.allItemsSplit || !this.billVariables.validBillValues || !this.billVariables.validTax2 || !this.billVariables.validTax3) && styles.statusBarError ]}>    
+                <View style={[{flex: 4}]}>
+                    <Text style={[styles.statusInformation,(!this.billVariables.allItemsSplit || !this.billVariables.validBillValues || !this.billVariables.validTax2 || !this.billVariables.validTax3) && styles.statusInformationError ]}>{this.state.statusInformation} </Text>
+                </View>
             </View>
         )
         
@@ -571,23 +709,7 @@ export default class SplitScreen extends Component {
                 })
             }}
             >
-                {this.state.dragging && 
-                <Animated.View 
-                style={[styles.dragItem,
-                    {
-                        top: this.point.getLayout().top,
-                        left: this.point.getLayout().left,
-                        width: this.screenVariables.itemWidth/2,
-                        height: this.screenVariables.itemHeight
-                    }
-                ]} 
-                >
-                    <View style={{flex:1}}>
-                        <Icon name='drag-handle' color='black'></Icon>
-                    </View>
-                    <Text style={{flex:3, textAlign: 'center'}}>{this.state.items[this.state.itemIdx].name}</Text>
-                </Animated.View>
-                }
+                {this.state.dragging && renderPopupItem()}
                 <View style={styles.container} 
                 onLayout={ e => {
                     this.screenVariables.containerViewOffsetX = e.nativeEvent.layout.x;
@@ -595,108 +717,14 @@ export default class SplitScreen extends Component {
                 }} 
                 >
                     
-                    <View style={styles.itemOptionsContainter}>
-                        <TouchableOpacity style={styles.itemOptions} onPress={()=>this.addItem()}>
-                            <Icon name='add' color='blue'></Icon>
-                            <Icon name='local-grocery-store' color='blue'></Icon>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.itemOptions} onPress={()=>this.addUser()}>
-                            <Icon name='add' color='blue'></Icon>
-                            <Icon name='account-circle' color='blue'></Icon>
-                        </TouchableOpacity>
-                        <View style={styles.itemOptions} 
-                        onLayout={ e => {
-                            this.screenVariables.deleteBoxPoints = {
-                                x0: e.nativeEvent.layout.x,
-                                x1: e.nativeEvent.layout.x + e.nativeEvent.layout.width,
-                                y0: e.nativeEvent.layout.y,
-                                y1: e.nativeEvent.layout.y + e.nativeEvent.layout.height,
-                            }
-                        }}>
-                            <Icon name='delete' color={this.state.dragging?'red':'black'} ></Icon>
-                        </View>
+                    {renderStatusBar()}
+                    <View style={styles.itemContainer}>
+                        {renderItemHeader()}
+                        {renderItemContainer()}
                     </View>
-
-                    {renderedItem({
-                            item: {id:'HEADER', editable: false, name: 'Name', cost: '$' , taxable: true, forceUpdate: 0, },
-                            itemViewType: ITEM_VIEW_TYPE.ITEM_HEADER
-                    })}
-                    <FlatList 
-                        scrollEnabled={!this.state.dragging}
-                        style={styles.itemListHolder}
-                        data={this.state.items}
-                        renderItem={({item, index}) => renderedItem({
-                            item: item,
-                            index: index,
-                            itemViewType: ITEM_VIEW_TYPE.ITEM_ACTUAL
-                        })}
-                        onScroll={ e => {
-                            this.screenVariables.scrollOffsetY = e.nativeEvent.contentOffset.y;
-                        }}
-                        onLayout={ e => {
-                            this.screenVariables.itemlistTopOffset = e.nativeEvent.layout.y;
-                            this.screenVariables.itemlistHeight = e.nativeEvent.layout.height;
-                        }}
-                        scrollEventThrottle={16}
-                    />
-                    <View style={styles.billDetailView}>
-                        <View style={[styles.billDetailViewElement, styles.disabled,!this.state.validSubtotal && styles.billDetailInvalid]}>
-                            <Text style={[styles.billDetailText, styles.billDetailFull]} >Subtotal:${this.state.billSubtotal}</Text>
-                        </View>
-                        <View style={[styles.billDetailViewElement,!this.state.validTax && styles.billDetailInvalid, !this.state.validTip && this.state.validTotal && styles.billDetailInvalid]}>
-                            <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tax:$</Text>
-                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTax +""}  onChangeText={(text)=>this.handleChangeBillValues("billTax",text)} onEndEditing={()=>this.calculateBill()}/>
-                        </View>
-                        <View style={[styles.billDetailViewElement, styles.disabled, !this.state.validTip && styles.billDetailInvalid]}>
-                            <Text style={[styles.billDetailText, styles.billDetailFull]} >Tip:${this.state.billTip}</Text>
-                        </View>
-                        <View style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]}>
-                            <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
-                            <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  value={this.state.billTotal +""} onChangeText={(text)=>this.handleChangeBillValues("billTotal",text)} onEndEditing={()=>this.calculateBill()} />
-                       
-                        </View>
-                    </View>
-                    <ScrollView style={styles.userListHolder} contentContainerStyle={styles.scrollChildren}
-                        onScroll={ e => {
-                            this.screenVariables.userlistScrollOffsetY = e.nativeEvent.contentOffset.y;
-                        }}
-                        onLayout={ e => {
-                            this.screenVariables.userlistTopOffset = e.nativeEvent.layout.y;
-                            this.screenVariables.userlistHeight = e.nativeEvent.layout.height;
-                            this.screenVariables.userlistWidth = e.nativeEvent.layout.width;
-                        }}
-                        scrollEventThrottle={16}
-                    >
-                        
-                        <View style={styles.userList} >
-                            {this.state.users.map( (user, index) => (
-                                <View  key={user.id} style={[styles.user , index==this.screenVariables.userIdx && styles.userHighlight]}
-                                onLayout={ e => {
-                                    this.screenVariables.userBoxPoints[index] = {
-                                        x0: e.nativeEvent.layout.x,
-                                        x1: e.nativeEvent.layout.x + e.nativeEvent.layout.width,
-                                        y0: e.nativeEvent.layout.y,
-                                        y1: e.nativeEvent.layout.y + e.nativeEvent.layout.height,
-                                    }
-                                }}
-                                > 
-                                    <User key={user.id} user={user} panResponder={this._panResponder} deleteUser={this.deleteUser} editUser={this.editUser} items={this.state.items}></User>
-                                </View>
-                            ))}
-                        </View>
-                        
-                    </ScrollView>
-                    
-        
-                    <View style={[styles.statusBar, (!this.billVariables.allItemsSplit || !this.billVariables.validBillValues || !this.billVariables.validTax2 || !this.billVariables.validTax3) && styles.statusBarError ]}>
-                        
-                        <View style={[{flex: 4}]}>
-                            <Text style={[styles.statusInformation,(!this.billVariables.allItemsSplit || !this.billVariables.validBillValues || !this.billVariables.validTax2 || !this.billVariables.validTax3) && styles.statusInformationError ]}>{this.state.statusInformation} </Text>
-                        </View>
-                        <View style={[{flex: 1} , styles.centralButtonHolder]} >
-                            <Icon name="settings-backup-restore" color="red" onPress={()=>this.resetAll()}></Icon>
-                        </View>
-                    </View>
+                    {renderToolbarContainer()}
+                    {renderUserContainer()}
+                    {renderBillDetail()}
                 </View>
             </View>
             
@@ -714,20 +742,76 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fafafa',
         margin: 2,
-        borderColor: '#FF0000',
+        borderColor: '#fafafa',
         borderWidth: 1,
     },
     scrollChildren: {
         alignItems: 'flex-start',
         justifyContent: 'flex-start',
     },
-    itemOptionsContainter: {
+    dragItem:{
+        zIndex: 2,
+        position: 'absolute',
+        backgroundColor: '#9fcfed',
+        borderWidth: 1,
+        borderColor: '#416982',
+        alignItems: 'center',
         flexDirection: 'row'
     },
-    userListHolder: {
+    dragSoruce:{
+        opacity: 0.3
+    },
+    itemContainer: {
+        flex:1,
+        borderColor: '#AA8CBD',
+        backgroundColor: '#DDDDDD',
+        borderWidth: 4
+    },
+    itemListHolder: {
         flex: 1,
-        borderColor: '#300429',
-        borderWidth: 1
+    },
+    toolbarContainer: {
+        flexDirection: 'row',
+    },
+    toolbarItem: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        backgroundColor: '#AA8CBD',
+        borderColor: '#AA8CBD',
+        borderBottomWidth: 2,
+        borderRightWidth: 2,
+        borderLeftWidth: 2,
+        flex:1,
+    },
+    toolbarReset: {
+        justifyContent: 'center',
+        borderColor: '#8B0046',
+        backgroundColor: '#8B0046',
+        borderWidth: 2,
+        flex: 1,
+    },
+    resetButton: {
+        textAlign: 'center',
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: 'bold'
+        
+    },
+    toolbarUser: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        backgroundColor: '#A6C399',
+        borderColor: '#A6C399',
+        borderTopWidth: 2,
+        borderRightWidth: 2,
+        borderLeftWidth: 2,
+        flex:1,
+    },
+    userListHolder: {
+        backgroundColor: '#DDDDDD',
+        borderColor: '#A6C399',
+        borderWidth: 4,
+        flex: 1
     },
     userList: {
         width: "100%"
@@ -743,31 +827,6 @@ const styles = StyleSheet.create({
         paddingRight: 2,
         paddingLeft: 0,
         paddingTop: 0
-    },
-    itemOptions: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        backgroundColor: '#ffffff',
-        borderColor: '#5e4848',
-        borderWidth: 2,
-        flex: 1
-    },
-    itemListHolder: {
-        flex: 1,
-        borderColor: '#300429',
-        borderWidth: 1
-    },
-    dragItem:{
-        zIndex: 2,
-        position: 'absolute',
-        backgroundColor: '#9fcfed',
-        borderWidth: 1,
-        borderColor: '#416982',
-        alignItems: 'center',
-        flexDirection: 'row'
-    },
-    dragSoruce:{
-        opacity: 0.3
     },
     billDetailView: {
         flexDirection: 'row'
@@ -811,12 +870,6 @@ const styles = StyleSheet.create({
     },
     statusBarError: {
         backgroundColor: '#8b0000',
-    },
-    centralButtonHolder: {
-        justifyContent: 'center',
-        borderColor: '#5e4848',
-        backgroundColor: '#ffffff',
-        borderWidth: 2,
     },
     statusInformation: {
         justifyContent: 'center',

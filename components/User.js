@@ -110,7 +110,8 @@ const styles = StyleSheet.create({
         margin: 2,
         backgroundColor: '#b342eb',
         borderWidth: 2,
-        borderColor: '#416982'
+        borderColor: '#416982',
+        paddingBottom: 3
     },
     userView: {
         flexDirection: 'row',
