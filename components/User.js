@@ -23,7 +23,7 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
         <View style={styles.user}>
             
                 
-            <View style={styles.userItemView}>
+            <View >
                 <Collapse isCollapsed={true} >
                     <CollapseHeader style={styles.userView}>
                         <View style={{flex: 1}}>
@@ -39,7 +39,7 @@ const User =  ({user, deleteUser,editUser, items,panResponder }) => {
                             <Icon  color='#8b0000' name='delete' onPress={()=>confirmDeleteUser(deleteUser,shallowUser)}></Icon>
                         </View>
                     </CollapseHeader>
-                    <CollapseBody>
+                    <CollapseBody style={styles.userItemView}>
                         {userItems.length===0 && 
                             <Text style={ styles.item}> Drag items here</Text>
 
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     user: {
         flex: 1,
         margin: 2,
-        backgroundColor: '#b342eb',
+        backgroundColor: '#cfed9f',
         borderWidth: 2,
         borderColor: '#416982',
         paddingBottom: 3
@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
     userItemView: {
+        paddingTop: 3
     },
     billDetailView: {
         justifyContent: 'flex-end',
@@ -130,9 +131,11 @@ const styles = StyleSheet.create({
     item: {
         padding: 5,
         backgroundColor: '#9fcfed',
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: '#416982',
-        textAlign: 'center'
+        textAlign: 'center',
+        marginLeft: 2,
+        marginRight: 2,
     },
 });
   

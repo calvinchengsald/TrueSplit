@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import {  StyleSheet, Text, TouchableOpacity, View, FlatList, PanResponder, Animated ,TextInput, Alert} from 'react-native';
+import {  StyleSheet, Text, TouchableOpacity, View, FlatList, PanResponder, Animated ,TextInput, Alert  } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {  ScrollView } from 'react-native-gesture-handler';
 import Item, {ITEM_VIEW_TYPE}  from '../components/Item'
 import User  from '../components/User'
@@ -217,7 +218,6 @@ export default class SplitScreen extends Component {
     // From the X,Y coordinate of the initial drag point, find what item is the drag being applied to
     findItemIndexFromY = (y) => {
         const value = Math.floor( (this.screenVariables.scrollOffsetY + y - this.screenVariables.itemlistTopOffset -this.screenVariables.rootViewOffsetY - this.screenVariables.containerViewOffsetY) / this.screenVariables.itemHeight );
-        
         if(value<0) {
             return 0;
         }
@@ -559,6 +559,7 @@ export default class SplitScreen extends Component {
                 this.screenVariables.itemHeight = e.nativeEvent.layout.height;
                 this.screenVariables.itemWidth = e.nativeEvent.layout.width;
             }}
+            key={"itemView_" +itemViewType+"_" + item.id }
             >
                 <Item  key={"item_" +itemViewType+"_" + item.id } panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable} itemViewType={itemViewType}></Item>
             </View>
@@ -621,15 +622,9 @@ export default class SplitScreen extends Component {
         )
 
         const renderItemContainer = () => (
-            <FlatList 
-                scrollEnabled={!this.state.dragging}
-                style={styles.itemListHolder}
-                data={this.state.items}
-                renderItem={({item, index}) => renderedItem({
-                    item: item,
-                    index: index,
-                    itemViewType: ITEM_VIEW_TYPE.ITEM_ACTUAL
-                })}
+            <KeyboardAwareScrollView
+            
+                resetScrollToCoords={{ x: 0, y: 0 }}
                 onScroll={ e => {
                     this.screenVariables.scrollOffsetY = e.nativeEvent.contentOffset.y;
                 }}
@@ -638,7 +633,17 @@ export default class SplitScreen extends Component {
                     this.screenVariables.itemlistHeight = e.nativeEvent.layout.height;
                 }}
                 scrollEventThrottle={16}
-            />
+                style={styles.itemListHolder}
+            >
+                {this.state.items.map( (item, index) => renderedItem({
+                        item: item,
+                        index: index,
+                        itemViewType: ITEM_VIEW_TYPE.ITEM_ACTUAL
+                    }))
+
+                }
+            </KeyboardAwareScrollView>
+            
         )
         const renderBillDetail = () => (
             <View style={styles.billDetailView}>
@@ -710,14 +715,16 @@ export default class SplitScreen extends Component {
             }}
             >
                 {this.state.dragging && renderPopupItem()}
-                <View style={styles.container} 
+                <View  
+                style={styles.container} 
                 onLayout={ e => {
                     this.screenVariables.containerViewOffsetX = e.nativeEvent.layout.x;
                     this.screenVariables.containerViewOffsetY = e.nativeEvent.layout.y;
                 }} 
                 >
                     
-                    <View style={styles.itemContainer}>
+                    <View style={styles.itemContainer}
+                    >
                         {renderItemHeader()}
                         {renderItemContainer()}
                     </View>
@@ -725,7 +732,7 @@ export default class SplitScreen extends Component {
                     {renderUserContainer()}
                     {renderStatusBar()}
                     {renderBillDetail()}
-                </View>
+                </View >
             </View>
             
         )
