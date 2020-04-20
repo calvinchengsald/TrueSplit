@@ -90,7 +90,6 @@ export default class SplitScreen extends Component {
                 }
             },
             onPanResponderMove: (evt, gestureState) => {
-                
                 if(this.dragEventSource === DRAG_EVENT_SOURCE.ITEM){
                     //update the pointer that will be the start of the animated popup box
                     Animated.event([{y: this.point.y},{x: this.point.x}])({y:gestureState.moveY-this.screenVariables.rootViewOffsetY-this.screenVariables.itemHeight/2},{x:gestureState.moveX});
@@ -218,6 +217,7 @@ export default class SplitScreen extends Component {
     // From the X,Y coordinate of the initial drag point, find what item is the drag being applied to
     findItemIndexFromY = (y) => {
         const value = Math.floor( (this.screenVariables.scrollOffsetY + y - this.screenVariables.itemlistTopOffset -this.screenVariables.rootViewOffsetY - this.screenVariables.containerViewOffsetY) / this.screenVariables.itemHeight );
+        
         if(value<0) {
             return 0;
         }
@@ -717,13 +717,13 @@ export default class SplitScreen extends Component {
                 }} 
                 >
                     
-                    {renderStatusBar()}
                     <View style={styles.itemContainer}>
                         {renderItemHeader()}
                         {renderItemContainer()}
                     </View>
                     {renderToolbarContainer()}
                     {renderUserContainer()}
+                    {renderStatusBar()}
                     {renderBillDetail()}
                 </View>
             </View>
@@ -829,6 +829,7 @@ const styles = StyleSheet.create({
         paddingTop: 0
     },
     billDetailView: {
+        marginTop: 3,
         flexDirection: 'row'
     },
     billDetailViewElement: {
@@ -857,8 +858,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     billDetailInvalid: {
-        borderColor: '#bb0000',
-        borderWidth: 4
+        borderColor: '#8b0046',
+        borderWidth: 3,
+        
     },
     statusBar: {
         justifyContent: 'center',
