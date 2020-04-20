@@ -137,7 +137,7 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
 }
 
 const setItemCost = (text, item, origionalCost, editItem) => {
-    console.log(text)
+   
     var finalCost = standardizeNumber(text);
     //because react native only detects change, we need to force a change here in case the rounded decimal is the same as the starting one
     
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
         borderColor: '#416982',
     },
     header: {
-        backgroundColor: '#b342eb',
+        backgroundColor: '#ed9fcf',
         borderColor: 'black',
         borderBottomWidth: 4
     },

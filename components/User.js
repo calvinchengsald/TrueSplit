@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     user: {
         flex: 1,
         margin: 2,
-        backgroundColor: '#b342eb',
+        backgroundColor: '#cfed9f',
         borderWidth: 2,
         borderColor: '#416982',
         paddingBottom: 3
@@ -130,9 +130,11 @@ const styles = StyleSheet.create({
     item: {
         padding: 5,
         backgroundColor: '#9fcfed',
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: '#416982',
-        textAlign: 'center'
+        textAlign: 'center',
+        marginLeft: 2,
+        marginRight: 2,
     },
 });
   
