@@ -51,13 +51,13 @@ export default class SplitScreen extends Component {
         super(props);
         this.state = {
             items: [
-                {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
-                {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
+                // {id: uuid(), editable: true, name: 'Pokibowl', cost: '10' , taxable: true, split: false, totalShares: 0},
+                // {id: uuid(), editable: true, name: 'Sushi', cost: '15' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Pizza', cost: '8' , taxable: true, split: false, totalShares: 0},
                 // {id: uuid(), editable: true, name: 'Mozerella Sticks', cost: '10', taxable: false, split: false , totalShares: 0}
             ],
             users: [
-                {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
+                // {id: uuid(), name: 'Calvin', itemList: {}, confirmDelete: false, showItems: true},
                 // {id: uuid(), name: 'Jenny', itemList: {}, confirmDelete: false, showItems: true},
                 // {id: uuid(), name: 'Sunny', itemList: {}, confirmDelete: false, showItems: true}
             ],
@@ -559,6 +559,7 @@ export default class SplitScreen extends Component {
                 this.screenVariables.itemHeight = e.nativeEvent.layout.height;
                 this.screenVariables.itemWidth = e.nativeEvent.layout.width;
             }}
+            key={"itemView_" +itemViewType+"_" + item.id }
             >
                 <Item  key={"item_" +itemViewType+"_" + item.id } panResponder={this._panResponder}  item={item} deleteItem={this.deleteItem} editItem={this.editItem} editable={item.editable} itemViewType={itemViewType}></Item>
             </View>
