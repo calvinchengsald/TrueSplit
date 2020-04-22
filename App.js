@@ -48,7 +48,7 @@ export default function App(props) {
     return null;
   } else {
     return (
-      <MenuProvider>
+      <MenuProvider backHandler={true} >
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
           <NavigationContainer ref={containerRef} initialState={initialNavigationState}>
