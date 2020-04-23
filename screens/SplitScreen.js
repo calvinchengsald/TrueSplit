@@ -180,10 +180,16 @@ export default class SplitScreen extends Component {
             [
                 
                 {text: 'Cancel', onPress: () => {}},
-                {text: 'OK', onPress: () => {this.setStateAll({
-                    users: [],
-                    items: []
-                })}, style: 'cancel'},
+                {text: 'OK', onPress: () => {
+                    this.billVariables.billSubtotal=0;
+                    this.billVariables.billTax=0;
+                    this.billVariables.billTip=0;
+                    this.billVariables.billTotal=0;
+                    this.setStateAll({
+                        users: [],
+                        items: []
+                    })
+                }, style: 'cancel'},
             ],
             { cancelable: false }
         )
@@ -371,7 +377,8 @@ export default class SplitScreen extends Component {
             editable: true,
             name: '',
             cost: '',
-            taxable: true
+            taxable: true,
+            split: false,
         };
         var itemList = this.state.items;
         itemList.push(newItem);

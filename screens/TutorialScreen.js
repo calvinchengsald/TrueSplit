@@ -34,7 +34,8 @@ export default class TutorialScreen extends Component {
             <Image source={require('../assets/images/tutorial/basic_splitting/2.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/basic_splitting/3.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/basic_splitting/4.png')} style={styles.image} resizeMode="contain"/>,
-            <Image source={require('../assets/images/tutorial/basic_splitting/5.png')} style={styles.image} resizeMode="contain"/>
+            <Image source={require('../assets/images/tutorial/basic_splitting/5.png')} style={styles.image} resizeMode="contain"/>,
+            <Image source={require('../assets/images/tutorial/basic_splitting/6.png')} style={styles.image} resizeMode="contain"/>,
         ]
         this.imgShare = [
             <Image source={require('../assets/images/tutorial/shares/0.png')} style={styles.image} resizeMode="contain"/>,
