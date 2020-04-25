@@ -8,9 +8,10 @@ import {Icon} from 'react-native-elements'
 const { SlideInMenu } = renderers;
 
 const TUTORIAL_NAMES = {
+    THEORY: 'Theory',
     BASIC: 'Basic Splitting',
+    SHARES: 'Shares',
     TAX: 'Tax and Discounts',
-    SHARES: 'Shares'
 }
 
 export default class TutorialScreen extends Component {
@@ -28,7 +29,14 @@ export default class TutorialScreen extends Component {
     }
 
     loadTutorialImages = () => {
+        
+        this.imgTheory = [
+            <Image source={require('../assets/images/tutorial/theory/0.png')} style={styles.image} resizeMode="contain"/>,
+            <Image source={require('../assets/images/tutorial/theory/1.png')} style={styles.image} resizeMode="contain"/>,
+            <Image source={require('../assets/images/tutorial/theory/2.png')} style={styles.image} resizeMode="contain"/>,
+        ]
         this.imgBasic = [
+            <Image source={require('../assets/images/tutorial/basic_splitting/situation.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/basic_splitting/0.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/basic_splitting/1.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/basic_splitting/2.png')} style={styles.image} resizeMode="contain"/>,
@@ -38,6 +46,7 @@ export default class TutorialScreen extends Component {
             <Image source={require('../assets/images/tutorial/basic_splitting/6.png')} style={styles.image} resizeMode="contain"/>,
         ]
         this.imgShare = [
+            <Image source={require('../assets/images/tutorial/shares/situation.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/shares/0.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/shares/1.png')} style={styles.image} resizeMode="contain"/>,
             <Image source={require('../assets/images/tutorial/shares/2.png')} style={styles.image} resizeMode="contain"/>,
@@ -46,6 +55,7 @@ export default class TutorialScreen extends Component {
             <Image source={require('../assets/images/tutorial/shares/5.png')} style={styles.image} resizeMode="contain"/>
         ]
         this.imgTax = [
+            <Image source={require('../assets/images/tutorial/tax_and_discounts/situation.png')} style={styles.image}  resizeMode="contain" />,
             <Image source={require('../assets/images/tutorial/tax_and_discounts/0.png')} style={styles.image}  resizeMode="contain" />,
             <Image source={require('../assets/images/tutorial/tax_and_discounts/1.png')} style={styles.image}  resizeMode="contain" />,
             <Image source={require('../assets/images/tutorial/tax_and_discounts/2.png')} style={styles.image}  resizeMode="contain" />,
@@ -61,6 +71,9 @@ export default class TutorialScreen extends Component {
     setTutorial = (tutorialName) => {
         var currentTutorial;
         switch(tutorialName) {
+            case TUTORIAL_NAMES.THEORY: 
+                currentTutorial=this.imgTheory;
+                break;
             case TUTORIAL_NAMES.BASIC: 
                 currentTutorial=this.imgBasic;
                 break;
@@ -79,12 +92,14 @@ export default class TutorialScreen extends Component {
             carouselInitialize: true,
             currentTutorialName : tutorialName,
             currentTutorial: currentTutorial,
-        })
-        if( this._carousel !== undefined) {
-            this._carousel.snapToItem(0,true,true);
-        }
+        }, () => this.snapToItem(0))
     }
 
+    snapToItem = (index) => {
+        if( this._carousel !== undefined) {
+            this._carousel.snapToItem(index,true,true);
+        }
+    }
 
     render() {
         const renderTutorialImage = ({item}) => {
@@ -96,26 +111,31 @@ export default class TutorialScreen extends Component {
         }   
         return (
             <View style={styles.container}>
-                <Menu name="tutorialPicker" style={styles.tutorialPickerMenu} renderer={SlideInMenu}  placement='bottom' onSelect={value => this.selectNumber(value)}>
-                    <MenuTrigger style={styles.tutorialPickerMenuTrigger}>
-                        <Icon name="arrow-drop-down" ></Icon>
-                        <Text style={{ fontSize: 18 }}>{coalesce(this.state.currentTutorialName, 'Select Tutorial')}</Text>
-                        <Icon name="arrow-drop-down" ></Icon>
-                    </MenuTrigger>
-                    <MenuOptions style={styles.tutorialPickerMenuOptionHolder}>
-                        
-                        <MenuOption style={styles.tutorialPickerMenuOption} onSelect={() => this.setTutorial(TUTORIAL_NAMES.BASIC)} > 
-                            <Text style={styles.tutorialPickerMenuOptionText} > {TUTORIAL_NAMES.BASIC} </Text>
-                        </MenuOption>
-                        <MenuOption style={styles.tutorialPickerMenuOption} onSelect={() => this.setTutorial(TUTORIAL_NAMES.SHARES)} > 
-                            <Text style={styles.tutorialPickerMenuOptionText} > {TUTORIAL_NAMES.SHARES} </Text>
-                        </MenuOption>
-                        <MenuOption style={styles.tutorialPickerMenuOption} onSelect={() => this.setTutorial(TUTORIAL_NAMES.TAX)} > 
-                            <Text style={styles.tutorialPickerMenuOptionText} > {TUTORIAL_NAMES.TAX} </Text>
-                        </MenuOption>
+                <View style={styles.tutorialHelperToolbar}>
+                    
+                    <View style={styles.tutorialHelperButton}>
+                        <Icon name="replay" onPress={()=>this.snapToItem(0)}></Icon>
+                    </View>
+                    <Menu name="tutorialPicker" style={styles.tutorialPickerMenu} renderer={SlideInMenu}  placement='bottom' onSelect={value => this.selectNumber(value)}>
+                        <MenuTrigger style={styles.tutorialPickerMenuTrigger}>
+                            <Icon name="arrow-drop-down" ></Icon>
+                            <Text style={{ fontSize: 18 }}>{coalesce(this.state.currentTutorialName, 'Select Tutorial')}</Text>
+                            <Icon name="arrow-drop-down" ></Icon>
+                        </MenuTrigger>
+                        <MenuOptions style={styles.tutorialPickerMenuOptionHolder}>
+                            {Object.keys(TUTORIAL_NAMES).map( key => (
+                                    <MenuOption key={'tutorial_menu_'+key} style={styles.tutorialPickerMenuOption} onSelect={() => this.setTutorial(TUTORIAL_NAMES[key])} > 
+                                        <Text style={styles.tutorialPickerMenuOptionText} > {TUTORIAL_NAMES[key]} </Text>
+                                    </MenuOption>
+                            ))}
 
-                    </MenuOptions>
-                </Menu>
+                        </MenuOptions>
+                    </Menu>
+                    
+                    <View style={styles.tutorialHelperButton}>
+                    </View>
+
+                </View>
                 <View style={styles.carouselContainer}
                 onLayout={ e => {
                     this.carouselContainerWidth = e.nativeEvent.layout.width;
@@ -161,11 +181,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         
     },
+    tutorialHelperToolbar: {
+        flex:1 ,
+        flexDirection: 'row',
+
+    },
     tutorialPickerMenu: {
-        height: 'auto', 
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
+        marginBottom: 10,
+        flex:8 
+    },
+    tutorialHelperButton: {
+        justifyContent: 'center',
+        alignItems: 'center',
         marginBottom: 10,
         flex:1 
     },

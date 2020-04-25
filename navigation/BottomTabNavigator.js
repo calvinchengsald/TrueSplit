@@ -43,11 +43,9 @@ function getHeaderTitle(route) {
 
   switch (routeName) {
     case 'Tutorial':
-      return 'How it works~';
-    case 'Links':
-      return 'Links to learn more';
+      return 'How it Works';
     case 'Split':
-      return 'Split your bill!';
+      return 'Split Your Bill';
 
   }
 }
