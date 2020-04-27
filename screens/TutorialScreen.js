@@ -203,12 +203,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
 
     },
-    tutorialPickerMenu: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'row',
-        flex:6 
-    },
     tutorialHelperButton: {
         borderColor: 'black',
         borderWidth: 2,
@@ -216,6 +210,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         flex:1 
+    },
+    tutorialPickerMenu: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row',
+        flex:6 
     },
     tutorialPickerMenuTrigger: {
         width: '100%',
