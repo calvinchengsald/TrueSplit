@@ -191,7 +191,7 @@ export default class SplitScreen extends Component {
                     })
                 }, style: 'cancel'},
             ],
-            { cancelable: false }
+            { cancelable: true }
         )
         
     }

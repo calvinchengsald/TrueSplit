@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
-import { StyleSheet, View, Text, Image } from 'react-native'
+import { StyleSheet, View, Text, Image, Alert } from 'react-native'
 import  Carousel  from 'react-native-snap-carousel';
 import {Menu, MenuOptions, MenuOption, MenuTrigger, renderers   } from 'react-native-popup-menu';
 import {coalesce } from '../utility/utils';
 import {Icon} from 'react-native-elements'
+import { sendEmail } from '../components/Email';
 
 const { SlideInMenu } = renderers;
 
@@ -101,6 +102,21 @@ export default class TutorialScreen extends Component {
         }
     }
 
+    sendEmail = () => {
+        Alert.alert(
+            'Report Bug',
+            'Open email App to report a bug?',
+            [
+                
+                {text: 'Cancel', onPress: () => {}},
+                {text: 'OK', onPress: () => {
+                    sendEmail()
+                }, style: 'cancel'},
+            ],
+            { cancelable: true }
+        )
+    }
+
     render() {
         const renderTutorialImage = ({item}) => {
             return (
@@ -111,31 +127,6 @@ export default class TutorialScreen extends Component {
         }   
         return (
             <View style={styles.container}>
-                <View style={styles.tutorialHelperToolbar}>
-                    
-                    <View style={styles.tutorialHelperButton}>
-                        <Icon name="replay" onPress={()=>this.snapToItem(0)}></Icon>
-                    </View>
-                    <Menu name="tutorialPicker" style={styles.tutorialPickerMenu} renderer={SlideInMenu}  placement='bottom' onSelect={value => this.selectNumber(value)}>
-                        <MenuTrigger style={styles.tutorialPickerMenuTrigger}>
-                            <Icon name="arrow-drop-down" ></Icon>
-                            <Text style={{ fontSize: 18 }}>{coalesce(this.state.currentTutorialName, 'Select Tutorial')}</Text>
-                            <Icon name="arrow-drop-down" ></Icon>
-                        </MenuTrigger>
-                        <MenuOptions style={styles.tutorialPickerMenuOptionHolder}>
-                            {Object.keys(TUTORIAL_NAMES).map( key => (
-                                    <MenuOption key={'tutorial_menu_'+key} style={styles.tutorialPickerMenuOption} onSelect={() => this.setTutorial(TUTORIAL_NAMES[key])} > 
-                                        <Text style={styles.tutorialPickerMenuOptionText} > {TUTORIAL_NAMES[key]} </Text>
-                                    </MenuOption>
-                            ))}
-
-                        </MenuOptions>
-                    </Menu>
-                    
-                    <View style={styles.tutorialHelperButton}>
-                    </View>
-
-                </View>
                 <View style={styles.carouselContainer}
                 onLayout={ e => {
                     this.carouselContainerWidth = e.nativeEvent.layout.width;
@@ -147,7 +138,7 @@ export default class TutorialScreen extends Component {
                         data={this.state.currentTutorial}
                         renderItem={renderTutorialImage}
                         sliderWidth={this.carouselContainerWidth}
-                        itemWidth={this.carouselContainerWidth-60}
+                        itemWidth={this.carouselContainerWidth}
                         ref={(c) => { this._carousel = c; }}
                         inactiveSlideShift={15}
                         inactiveSlideScale={0.9}
@@ -156,6 +147,31 @@ export default class TutorialScreen extends Component {
                     />
                     }
                     
+                </View>
+                
+                <View style={styles.tutorialHelperToolbar}>
+                    
+                    <View style={styles.tutorialHelperButton}>
+                        <Icon name="replay" style={{flex:1}} onPress={()=>this.snapToItem(0)}></Icon>
+                    </View>
+                    <Menu name="tutorialPicker" style={styles.tutorialPickerMenu} renderer={SlideInMenu}  placement='bottom' onSelect={value => this.selectNumber(value)}>
+                        <MenuTrigger style={styles.tutorialPickerMenuTrigger}>
+                            <Icon name="arrow-drop-up" ></Icon>
+                            <Text style={{ fontSize: 18 }}>{coalesce(this.state.currentTutorialName, 'Select Tutorial')}</Text>
+                        </MenuTrigger>
+                        <MenuOptions style={styles.tutorialPickerMenuOptionHolder}>
+                            {Object.keys(TUTORIAL_NAMES).map( key => (
+                                    <MenuOption key={'tutorial_menu_'+key} style={styles.tutorialPickerMenuOption} onSelect={() => this.setTutorial(TUTORIAL_NAMES[key])} > 
+                                        <Text style={styles.tutorialPickerMenuOptionText} > {TUTORIAL_NAMES[key]} </Text>
+                                    </MenuOption>
+                            ))}
+
+                        </MenuOptions>
+                    </Menu>
+                    <View style={styles.tutorialHelperButton}>
+                        <Icon name="bug-report" onPress={()=>this.sendEmail()}></Icon>
+                    </View>
+
                 </View>
             </View>
         )
@@ -184,19 +200,21 @@ const styles = StyleSheet.create({
     tutorialHelperToolbar: {
         flex:1 ,
         flexDirection: 'row',
+        marginTop: 10,
 
     },
     tutorialPickerMenu: {
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
-        marginBottom: 10,
-        flex:8 
+        flex:6 
     },
     tutorialHelperButton: {
+        borderColor: 'black',
+        borderWidth: 2,
+        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 10,
         flex:1 
     },
     tutorialPickerMenuTrigger: {
@@ -208,12 +226,10 @@ const styles = StyleSheet.create({
         borderColor: '#5e4848',
         backgroundColor: '#DDDDDD',
         borderWidth: 2,
-        paddingRight: 3,
-        paddingLeft: 3,
     },
     tutorialPickerMenuOptionHolder: {
         backgroundColor: '#DDDDDD',
-        paddingBottom: 100
+        paddingBottom: 50
     },
     tutorialPickerMenuOption: {
         padding: 20,
