@@ -16,11 +16,11 @@ export default function BottomTabNavigator({ navigation, route }) {
   return (
     <BottomTab.Navigator initialRouteName={INITIAL_ROUTE_NAME}>
       <BottomTab.Screen
-        id="tab_tutorial"
-        name="Tutorial"
+        id="tab_help"
+        name="Help"
         component={TutorialScreen}
         options={{
-          title: 'Tutorial',
+          title: 'Help',
           tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="help" />,
         }}
       />
@@ -42,7 +42,7 @@ function getHeaderTitle(route) {
   const routeName = route.state?.routes[route.state.index]?.name ?? INITIAL_ROUTE_NAME;
 
   switch (routeName) {
-    case 'Tutorial':
+    case 'Help':
       return 'How it Works';
     case 'Split':
       return 'Split Your Bill';
