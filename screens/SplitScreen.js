@@ -327,21 +327,21 @@ export default class SplitScreen extends Component {
 
 
         // find status of this calculation:
-        var statusInformation = "All calculated"
+        var statusInformation = "All calculated."
         //specific tax cases
         if(!this.billVariables.validTax2){
             // invalid if all items are non-taxable but user enters a tax
-            statusInformation = "Tax is present but all items are marked as non-taxable"
+            statusInformation = "Please fix Tax. All items are marked as non-taxable but tax is entered."
         }
         else if(!this.billVariables.validTax3){
             // invalid if any items are taxable but user doesnt enter any tax
-            statusInformation = "Items are taxable but no tax is entered"
+            statusInformation = "Please fix Tax. Items are taxable but no tax is entered."
         }
         else if(!this.billVariables.validBillValues) {
-            statusInformation = "Please fix bill values in Red"
+            statusInformation = "Please fix the values below in red."
         }
         else if(!this.billVariables.allItemsSplit){
-            statusInformation = "Please split all remaining items in Blue"
+            statusInformation = "Please split all remaining items in blue."
         } 
         this.setState({
             billSubtotal:  this.billVariables.billSubtotal,

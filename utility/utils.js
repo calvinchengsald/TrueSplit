@@ -47,6 +47,9 @@ export const coalesce = (val1, val2) => {
     return  (val1 === undefined || val1 === null || val1.replace(/[\s]/,'')==='')? val2: val1;
 }
 
+export const isValid = (obj) => {
+    return obj !== undefined && obj !== null;
+}
 
 
 // if object is null, remove it from the list

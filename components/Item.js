@@ -39,7 +39,6 @@ const Item =  ({item, deleteItem,editItem, editable, panResponder, deleteItemFro
                         <Text style={[styles.itemTxText, shallowItem.taxable && styles.itemTxTextTaxable]}>Tax</Text>
                     </View>
                     <View style={[styles.itemElement, styles.flex1]}> 
-                        <Icon name='delete' color='#8b0000'></Icon>
                     </View>
                 </View>
             </View>
