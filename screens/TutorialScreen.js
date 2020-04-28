@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { StyleSheet, View, Text, Image, Alert } from 'react-native'
 import  Carousel  from 'react-native-snap-carousel';
 import {Menu, MenuOptions, MenuOption, MenuTrigger, renderers   } from 'react-native-popup-menu';
-import {coalesce } from '../utility/utils';
+import {coalesce, isValid  } from '../utility/utils';
 import {Icon} from 'react-native-elements'
 import { sendEmail } from '../components/Email';
 
@@ -105,7 +105,7 @@ export default class TutorialScreen extends Component {
     sendEmail = () => {
         Alert.alert(
             'Report Bug',
-            'Open email App to report a bug?',
+            'Open email app to report a bug?',
             [
                 
                 {text: 'Cancel', onPress: () => {}},
@@ -152,12 +152,16 @@ export default class TutorialScreen extends Component {
                 <View style={styles.tutorialHelperToolbar}>
                     
                     <View style={styles.tutorialHelperButton}>
+                        <Icon name="chevron-left" onPress={()=> {if( isValid(this._carousel)) this._carousel.snapToPrev(true,true)} }></Icon>
+                    </View>
+                    <View style={styles.tutorialHelperButton}>
                         <Icon name="replay" style={{flex:1}} onPress={()=>this.snapToItem(0)}></Icon>
                     </View>
                     <Menu name="tutorialPicker" style={styles.tutorialPickerMenu} renderer={SlideInMenu}  placement='bottom' onSelect={value => this.selectNumber(value)}>
                         <MenuTrigger style={styles.tutorialPickerMenuTrigger}>
                             <Icon name="arrow-drop-up" ></Icon>
                             <Text style={{ fontSize: 18 }}>{coalesce(this.state.currentTutorialName, 'Select Tutorial')}</Text>
+                            <Icon name="arrow-drop-up" ></Icon>
                         </MenuTrigger>
                         <MenuOptions style={styles.tutorialPickerMenuOptionHolder}>
                             {Object.keys(TUTORIAL_NAMES).map( key => (
@@ -170,6 +174,9 @@ export default class TutorialScreen extends Component {
                     </Menu>
                     <View style={styles.tutorialHelperButton}>
                         <Icon name="bug-report" onPress={()=>this.sendEmail()}></Icon>
+                    </View>
+                    <View style={styles.tutorialHelperButton}>
+                        <Icon name="chevron-right" onPress={()=> {if( isValid(this._carousel)) this._carousel.snapToNext(true,true)} }></Icon>
                     </View>
 
                 </View>
