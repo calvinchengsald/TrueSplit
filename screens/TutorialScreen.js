@@ -132,7 +132,7 @@ export default class TutorialScreen extends Component {
                     this.carouselContainerWidth = e.nativeEvent.layout.width;
                     this.carouselContainerHeight = e.nativeEvent.layout.height;
                 }} >
-                    {this.state.carouselInitialize &&
+                    {this.state.carouselInitialize ?
                     <Carousel
                         layout={'default'} 
                         data={this.state.currentTutorial}
@@ -145,6 +145,10 @@ export default class TutorialScreen extends Component {
                         layoutCardOffset={50}
 
                     />
+                    :
+                    <View style={{justifyContent:'center', alignContent: 'center'}}>
+                        <Image  source={require('../assets/images/icon_trans.png')} />    
+                    </View>
                     }
                     
                 </View>
@@ -155,9 +159,10 @@ export default class TutorialScreen extends Component {
                         <Icon name="chevron-left" onPress={()=> {if( isValid(this._carousel)) this._carousel.snapToPrev(true,true)} }></Icon>
                     </View>
                     <View style={styles.tutorialHelperButton}>
-                        <Icon name="replay" style={{flex:1}} onPress={()=>this.snapToItem(0)}></Icon>
+                        <Icon name="replay"    onPress={()=>this.snapToItem(0)}></Icon>
                     </View>
                     <Menu name="tutorialPicker" style={styles.tutorialPickerMenu} renderer={SlideInMenu}  placement='bottom' onSelect={value => this.selectNumber(value)}>
+                          
                         <MenuTrigger style={styles.tutorialPickerMenuTrigger}>
                             <Icon name="arrow-drop-up" ></Icon>
                             <Text style={{ fontSize: 18 }}>{coalesce(this.state.currentTutorialName, 'Select Tutorial')}</Text>
@@ -222,7 +227,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
-        flex:6 
+        flex:5 ,
+        backgroundColor: '#DDDDDD',
+        borderWidth: 2,
+        borderColor: '#5e4848',
     },
     tutorialPickerMenuTrigger: {
         width: '100%',
@@ -230,9 +238,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
-        borderColor: '#5e4848',
         backgroundColor: '#DDDDDD',
-        borderWidth: 2,
     },
     tutorialPickerMenuOptionHolder: {
         backgroundColor: '#DDDDDD',
