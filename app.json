@@ -29,7 +29,11 @@
       "bundleIdentifier": "com.sald.TrueSplit"
     },
     "android": {
-      "package": "com.sald.TrueSplit"
+      "package": "com.sald.TrueSplit",
+      "versionCode": 1,
+      "permissions": [
+        "WAKE_LOCK"
+      ]
     }
   }
 }

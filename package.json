@@ -7,6 +7,7 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "builda": "expo build:android",
+    "builda-bundle": "expo build:android -t app-bundle",
     "buildi": "expo build:ios",
     "publish": "expo publish",
     "test": "cypress open"
