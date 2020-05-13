@@ -30,7 +30,7 @@
     },
     "android": {
       "package": "com.sald.TrueSplit",
-      "versionCode": 1,
+      "versionCode": 3,
       "permissions": [
         "WAKE_LOCK"
       ]
