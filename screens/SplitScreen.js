@@ -7,8 +7,11 @@ import User  from '../components/User'
 import uuid from 'react-uuid';
 import {Icon} from 'react-native-elements'
 import {DRAG_EVENT_SOURCE, TOLERANCE} from '../constants/DragEventSource';
-import {standardizeNumber,parseFloatZero, parseFloatZero2,sortObjectArrayByKey} from '../utility/utils';
+import {standardizeNumber,parseFloatZero, parseFloatZero2,sortObjectArrayByKey, isValid} from '../utility/utils';
+import {Menu, MenuOptions, MenuOption, MenuTrigger, renderers   } from 'react-native-popup-menu';
 
+
+const { Popover } = renderers;
 
 export default class SplitScreen extends Component {
 
@@ -32,6 +35,8 @@ export default class SplitScreen extends Component {
         deleteBoxPoints: { x0: 0, y0:0, x1:0, y1:0 },
         containerViewOffsetY: 0,
         containerViewOffsetX: 0,
+        billDetailTipWidth: 0,
+        billDetailInitialize: false
     }
     billVariables = {
         billSubtotal: 0,
@@ -45,7 +50,14 @@ export default class SplitScreen extends Component {
         validBillValues: true,
         validTax2: true,
         validTax3: true,
+        validTotal2: false,
         allItemsSplit: true,
+    }
+    
+    refList = {
+        tax: null,
+        tip: null,
+        total: null,
     }
     constructor(props){
         super(props);
@@ -74,6 +86,7 @@ export default class SplitScreen extends Component {
             validSubtotal: false,
             statusInformation: "",
         }
+        
         this._panResponder = PanResponder.create({
             // Ask to be the responder:
             onStartShouldSetPanResponder: (evt, gestureState) => true,
@@ -262,14 +275,13 @@ export default class SplitScreen extends Component {
         //standardize all the bad values recieved from user
         this.billVariables.billTax = parseFloatZero(this.billVariables.billTax+"");
         this.billVariables.billTotal = parseFloat(standardizeNumber(this.billVariables.billTotal+""));
+        this.billVariables.billTip = parseFloat(standardizeNumber(this.billVariables.billTip+""));
         //calculate the bill subtotal
         var billSubtotal = 0.0;
         this.state.items.map( (item) => {
             billSubtotal+=parseFloatZero(item.cost)
         });
         this.billVariables.billSubtotal = parseFloat(billSubtotal);
-        //calcualte the tip from the above variables
-        this.billVariables.billTip = parseFloat(this.billVariables.billTotal -this.billVariables.billSubtotal -this.billVariables.billTax);
         
 
         var users = this.state.users;
@@ -328,21 +340,7 @@ export default class SplitScreen extends Component {
 
         // find status of this calculation:
         var statusInformation = "All calculated."
-        //specific tax cases
-        if(!this.billVariables.validTax2){
-            // invalid if all items are non-taxable but user enters a tax
-            statusInformation = "Please fix Tax. All items are marked as non-taxable but tax is entered."
-        }
-        else if(!this.billVariables.validTax3){
-            // invalid if any items are taxable but user doesnt enter any tax
-            statusInformation = "Please fix Tax. Items are taxable but no tax is entered."
-        }
-        else if(!this.billVariables.validBillValues) {
-            statusInformation = "Please fix the values below in red."
-        }
-        else if(!this.billVariables.allItemsSplit){
-            statusInformation = "Please split all remaining items in blue."
-        } 
+        statusInformation = this.findStatusInformation()
         this.setState({
             billSubtotal:  this.billVariables.billSubtotal,
             billTax:  this.billVariables.billTax,
@@ -357,6 +355,27 @@ export default class SplitScreen extends Component {
         }) 
     }
 
+    findStatusInformation = (statusInformation) => {
+        if(!this.billVariables.validTax2){
+            // invalid if all items are non-taxable but user enters a tax
+            statusInformation = "Please fix Tax. All items are marked as non-taxable but tax is entered."
+        }
+        else if(!this.billVariables.validTax3){
+            // invalid if any items are taxable but user doesnt enter any tax
+            statusInformation = "Please fix Tax. Items are taxable but no tax is entered."
+        }
+        else if(!this.billVariables.validTotal2){
+            // invalid if any items are taxable but user doesnt enter any tax
+            statusInformation = "Values do not add up to provided Total."
+        }
+        else if(!this.billVariables.validBillValues) {
+            statusInformation = "Please fix the values below in red."
+        }
+        else if(!this.billVariables.allItemsSplit){
+            statusInformation = "Please split all remaining items in blue."
+        } 
+        return statusInformation;
+    }
     deleteItem = (id) => {
         var newItems = this.state.items.filter(item => item.id != id);
         var newUsers = this.state.users;
@@ -532,19 +551,22 @@ export default class SplitScreen extends Component {
         this.billVariables.validTip = this.billVariables.billTip >= 0 - TOLERANCE;
         this.billVariables.validTotal = this.billVariables.billTotal > 0 && this.billVariables.billTotal >= this.billVariables.billSubtotal;
 
-        if(Math.abs(this.billVariables.billTotal - (this.billVariables.billSubtotal + this.billVariables.billTax + this.billVariables.billTip)) > TOLERANCE) {
-            this.billVariables.validTax = false;
-            this.billVariables.validTotal = false;
-        }
+        // valid if subtotal+tax+tip = total
+        this.billVariables.validTotal2 = Math.abs(this.billVariables.billSubtotal+this.billVariables.billTax+this.billVariables.billTip-this.billVariables.billTotal)<= TOLERANCE;
+        this.billVariables.validTotal = this.billVariables.validTotal && this.billVariables.validTotal2;
+
         return (
             this.billVariables.validTotal &&
             !isNaN(this.billVariables.billSubtotal)  && this.billVariables.billSubtotal > 0 &&
             this.billVariables.validTax && this.billVariables.validTip
-            
-
-
         );
     }
+    focusRef = (refToFocus) => {
+        if (isValid(refToFocus)){
+            refToFocus.focus();
+        }
+    }
+
     handleChangeBillValues = (type, value) => {
         this.billVariables[type] = standardizeNumber(value);
         this.setState({
@@ -654,21 +676,46 @@ export default class SplitScreen extends Component {
         )
         const renderBillDetail = () => (
             <View style={styles.billDetailView}>
+
+
+
+
                 <View style={[styles.billDetailViewElement, styles.disabled,!this.state.validSubtotal && styles.billDetailInvalid]}>
                     <Text style={[styles.billDetailText, styles.billDetailFull]} >Sub:${this.state.billSubtotal}</Text>
                 </View>
-                <View style={[styles.billDetailViewElement,!this.state.validTax && styles.billDetailInvalid, !this.state.validTip && this.state.validTotal && styles.billDetailInvalid]}>
+                <TouchableOpacity onPress={()=>this.focusRef(this.refList.tax)} style={[styles.billDetailViewElement,!this.state.validTax && styles.billDetailInvalid]}>
                     <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tax:$</Text>
-                    <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTax +""}  onChangeText={(text)=>this.handleChangeBillValues("billTax",text)} onEndEditing={()=>this.calculateBill()}/>
-                </View>
-                <View style={[styles.billDetailViewElement, styles.disabled, !this.state.validTip && styles.billDetailInvalid]}>
-                    <Text style={[styles.billDetailText, styles.billDetailFull]} >Tip:${this.state.billTip}</Text>
-                </View>
-                <View style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]}>
-                    <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
-                    <TextInput style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  value={this.state.billTotal +""} onChangeText={(text)=>this.handleChangeBillValues("billTotal",text)} onEndEditing={()=>this.calculateBill()} />
+                    <TextInput ref={(c) => {   this.refList.tax = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTax +""}  onChangeText={(text)=>this.handleChangeBillValues("billTax",text)} onEndEditing={()=>this.calculateBill()}/>
+                </TouchableOpacity>
+                {
+                    this.screenVariables.billDetailInitialize?
+                    <Menu style={[styles.billDetailViewElement,!this.state.validTip && styles.billDetailInvalid]}  renderer={Popover}  placement='top' >
+                        <MenuTrigger style={[styles.billDetailMenuTriggerElement, this.screenVariables.billDetailInitialize && {width: this.screenVariables.billDetailTipWidth }]} >
+                            <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tip:$</Text>
+                            <TextInput ref={(c) => {   this.refList.tip = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTip+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTip +""}  onChangeText={(text)=>this.handleChangeBillValues("billTip",text)} onEndEditing={()=>this.calculateBill()}/>               
+                        </MenuTrigger>
+                        <MenuOptions>
+                            <MenuOption onSelect={() => alert(`Save`)} text='Save' />
+                            <MenuOption onSelect={() => alert(`Not called`)} disabled={true} text='Disabled' />
+                        </MenuOptions>
+                    </Menu>
+                    :
+                    <TouchableOpacity style={[styles.billDetailViewElement,!this.state.validTip && styles.billDetailInvalid]} onPress={()=>this.focusRef(this.refList.tip)}
+                    onLayout={ e => {
+                        this.screenVariables.billDetailTipWidth = e.nativeEvent.layout.width;
+                        this.screenVariables.billDetailInitialize = true;
+                    }}>
+                        <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tip:$</Text>
+                        <TextInput ref={(c) => {   this.refList.tip = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTip+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTip +""}  onChangeText={(text)=>this.handleChangeBillValues("billTip",text)} onEndEditing={()=>this.calculateBill()}/>               
+                    </TouchableOpacity>
+                }
                 
-                </View>
+
+                <TouchableOpacity style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]} onPress={()=>this.focusRef(this.refList.total)}>
+                    <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
+                    <TextInput  ref={(c) => {  this.refList.total = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  value={this.state.billTotal +""} onChangeText={(text)=>this.handleChangeBillValues("billTotal",text)} onEndEditing={()=>this.calculateBill()} />
+                
+                </TouchableOpacity>
             </View>
         )
         const renderUserContainer = () => (
@@ -852,6 +899,11 @@ const styles = StyleSheet.create({
         borderColor: '#5e4848',
         borderWidth: 1,
         alignItems: 'center',
+    },
+    billDetailMenuTriggerElement: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row'
     },
     disabled: {
         backgroundColor: '#d3d3d3',

@@ -5,7 +5,7 @@ import TutorialScreen from '../screens/TutorialScreen';
 import SplitScreen from '../screens/SplitScreen';
 
 const BottomTab = createBottomTabNavigator();
-const INITIAL_ROUTE_NAME = 'Help';
+const INITIAL_ROUTE_NAME = 'Split';
 
 export default function BottomTabNavigator({ navigation, route }) {
   // Set the header title on the parent stack navigator depending on the
