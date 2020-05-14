@@ -7,7 +7,7 @@ import User  from '../components/User'
 import uuid from 'react-uuid';
 import {Icon} from 'react-native-elements'
 import {DRAG_EVENT_SOURCE, TOLERANCE} from '../constants/DragEventSource';
-import {standardizeNumber,parseFloatZero, parseFloatZero2,sortObjectArrayByKey, isValid} from '../utility/utils';
+import {standardizeNumber,parseFloatZero, parseFloatZero2,sortObjectArrayByKey, isValid, coalesce} from '../utility/utils';
 import {Menu, MenuOptions, MenuOption, MenuTrigger, renderers   } from 'react-native-popup-menu';
 
 
@@ -85,6 +85,8 @@ export default class SplitScreen extends Component {
             validTotal: false,
             validSubtotal: false,
             statusInformation: "",
+            showBillDetailTipText: true,
+            showBillDetailTotalText: true,
         }
         
         this._panResponder = PanResponder.create({
@@ -274,15 +276,15 @@ export default class SplitScreen extends Component {
         
         //standardize all the bad values recieved from user
         this.billVariables.billTax = parseFloatZero(this.billVariables.billTax+"");
-        this.billVariables.billTotal = parseFloat(standardizeNumber(this.billVariables.billTotal+""));
-        this.billVariables.billTip = parseFloat(standardizeNumber(this.billVariables.billTip+""));
+        this.billVariables.billTip = parseFloatZero(this.billVariables.billTip+"");
         //calculate the bill subtotal
         var billSubtotal = 0.0;
         this.state.items.map( (item) => {
             billSubtotal+=parseFloatZero(item.cost)
         });
         this.billVariables.billSubtotal = parseFloat(billSubtotal);
-        
+        //calculate the bill total
+        this.billVariables.billTotal = this.billVariables.billTax+this.billVariables.billTip+this.billVariables.billSubtotal;
 
         var users = this.state.users;
         var items = this.state.items;
@@ -352,6 +354,7 @@ export default class SplitScreen extends Component {
             validSubtotal: this.billVariables.validSubtotal,
             users: users,
             statusInformation : statusInformation,
+            showBillDetailTipText: true,
         }) 
     }
 
@@ -561,17 +564,36 @@ export default class SplitScreen extends Component {
             this.billVariables.validTax && this.billVariables.validTip
         );
     }
+    
     focusRef = (refToFocus) => {
         if (isValid(refToFocus)){
             refToFocus.focus();
         }
     }
-
-    handleChangeBillValues = (type, value) => {
-        this.billVariables[type] = standardizeNumber(value);
+    //custom set state to render the tip edit textbox viewable, then focus on it
+    setShowBillAndFocus = (showBillField, bool, refToFocus) => {
         this.setState({
-            [type] : this.billVariables[type]
+            [showBillField]: bool
+        }, () => {
+            this.focusRef(this.refList[refToFocus]);
         })
+    }
+
+    // calculate the total based on the subtotal/tax/tip and converts to 2 precision string
+    calculateTotal = () =>{
+        return parseFloatZero2(parseFloatZero(this.billVariables.billSubtotal) + parseFloatZero(this.billVariables.billTax) + parseFloatZero(this.billVariables.billTip));
+    }
+
+    handleChangeBillValues = (type, value, calcualteAfter) => {
+        this.billVariables[type] = standardizeNumber(value);
+        if (calcualteAfter) {
+            this.setStateVariable(type,this.billVariables[type] );
+        }
+        else {
+            this.setState({
+                [type] : this.billVariables[type]
+            })
+        }
     }
     componentDidMount() {
         // Print component dimensions to console
@@ -685,18 +707,22 @@ export default class SplitScreen extends Component {
                 </View>
                 <TouchableOpacity onPress={()=>this.focusRef(this.refList.tax)} style={[styles.billDetailViewElement,!this.state.validTax && styles.billDetailInvalid]}>
                     <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tax:$</Text>
-                    <TextInput ref={(c) => {   this.refList.tax = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTax +""}  onChangeText={(text)=>this.handleChangeBillValues("billTax",text)} onEndEditing={()=>this.calculateBill()}/>
+                    <TextInput ref={(c) => {   this.refList.tax = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTax+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTax +""}  onChangeText={(text)=>this.handleChangeBillValues("billTax",text,false)} onEndEditing={()=>this.calculateBill()}/>
                 </TouchableOpacity>
                 {
-                    this.screenVariables.billDetailInitialize?
+                    this.screenVariables.billDetailInitialize && this.state.showBillDetailTipText?
                     <Menu style={[styles.billDetailViewElement,!this.state.validTip && styles.billDetailInvalid]}  renderer={Popover}  placement='top' >
                         <MenuTrigger style={[styles.billDetailMenuTriggerElement, this.screenVariables.billDetailInitialize && {width: this.screenVariables.billDetailTipWidth }]} >
                             <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tip:$</Text>
-                            <TextInput ref={(c) => {   this.refList.tip = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTip+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTip +""}  onChangeText={(text)=>this.handleChangeBillValues("billTip",text)} onEndEditing={()=>this.calculateBill()}/>               
+                            <Text style={[styles.billDetailText, styles.billDetailInput, this.billVariables.billTip==""&&styles.placeholderText]} >{this.billVariables.billTip==""?0 :this.billVariables.billTip+""}</Text>            
                         </MenuTrigger>
                         <MenuOptions>
-                            <MenuOption onSelect={() => alert(`Save`)} text='Save' />
-                            <MenuOption onSelect={() => alert(`Not called`)} disabled={true} text='Disabled' />
+                            <MenuOption onSelect={() => this.handleChangeBillValues("billTip","0",true)} text='  0% : $0.00' />
+                            <MenuOption onSelect={() => this.handleChangeBillValues("billTip",parseFloatZero2(this.billVariables.billSubtotal*0.10),true)} text={'10% : $' + parseFloatZero2(this.billVariables.billSubtotal*0.10)} />
+                            <MenuOption onSelect={() => this.handleChangeBillValues("billTip",parseFloatZero2(this.billVariables.billSubtotal*0.15),true)} text={'15% : $' + parseFloatZero2(this.billVariables.billSubtotal*0.15)} />
+                            <MenuOption onSelect={() => this.handleChangeBillValues("billTip",parseFloatZero2(this.billVariables.billSubtotal*0.18),true)} text={'18% : $' + parseFloatZero2(this.billVariables.billSubtotal*0.18)} />
+                            <MenuOption onSelect={() => this.handleChangeBillValues("billTip",parseFloatZero2(this.billVariables.billSubtotal*0.20),true)} text={'20% : $' + parseFloatZero2(this.billVariables.billSubtotal*0.20)} />
+                            <MenuOption onSelect={() => this.setShowBillAndFocus("showBillDetailTipText",false,"tip")} text='Custom' />
                         </MenuOptions>
                     </Menu>
                     :
@@ -706,16 +732,33 @@ export default class SplitScreen extends Component {
                         this.screenVariables.billDetailInitialize = true;
                     }}>
                         <Text style={[styles.billDetailText, styles.billDetailDescription]} >Tip:$</Text>
-                        <TextInput ref={(c) => {   this.refList.tip = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTip+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTip +""}  onChangeText={(text)=>this.handleChangeBillValues("billTip",text)} onEndEditing={()=>this.calculateBill()}/>               
+                        <TextInput ref={(c) => {   this.refList.tip = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTip+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'   value={this.state.billTip +""}  onChangeText={(text)=>this.handleChangeBillValues("billTip",text,false)} onEndEditing={()=>this.calculateBill()}/>               
                     </TouchableOpacity>
                 }
                 
-
-                <TouchableOpacity style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]} onPress={()=>this.focusRef(this.refList.total)}>
-                    <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
-                    <TextInput  ref={(c) => {  this.refList.total = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  value={this.state.billTotal +""} onChangeText={(text)=>this.handleChangeBillValues("billTotal",text)} onEndEditing={()=>this.calculateBill()} />
+                {/* {this.screenVariables.billDetailInitialize && this.state.showBillDetailTotalText?
+                    <Menu style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]}   renderer={Popover}  placement='top' >
+                        <MenuTrigger style={[styles.billDetailMenuTriggerElement, this.screenVariables.billDetailInitialize && {width: this.screenVariables.billDetailTipWidth }]} >
+                            <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
+                            <Text style={[styles.billDetailText, styles.billDetailInput, this.billVariables.billTotal==""&&styles.placeholderText]} >{this.billVariables.billTotal==""?0 :this.billVariables.billTotal+""}</Text>            
+                        </MenuTrigger>
+                        <MenuOptions>
+                            <MenuOption onSelect={() => this.handleChangeBillValues("billTotal","0",true)} text='Clear' />
+                            <MenuOption onSelect={() => this.handleChangeBillValues("billTotal",this.calculateTotal(),true)} text={"Auto: $" +this.calculateTotal()} />
+                            <MenuOption onSelect={() => this.setShowBillAndFocus("showBillDetailTotalText",false,"total")} text='Enter' />
+                        </MenuOptions>
+                    </Menu>
+                    :
+                    <TouchableOpacity style={[styles.billDetailViewElement,!this.state.validTotal && styles.billDetailInvalid]} onPress={()=>this.focusRef(this.refList.total)}>
+                        <Text style={[styles.billDetailText, styles.billDetailDescription]} >Total:$</Text>
+                        <TextInput  ref={(c) => {  this.refList.total = c;   }} style={[styles.billDetailText, styles.billDetailInput]} defaultValue={this.billVariables.billTotal+""}  placeholder="0"  placeholderTextColor='#9c9191'  keyboardType='numeric'  value={this.state.billTotal +""} onChangeText={(text)=>this.handleChangeBillValues("billTotal",text,false)} onEndEditing={()=>this.calculateBill()} />
+                    
+                    </TouchableOpacity>
+                } */}
                 
-                </TouchableOpacity>
+                <View style={[styles.billDetailViewElement,styles.disabled,!this.state.validTotal && styles.billDetailInvalid]}>
+                    <Text style={[styles.billDetailText, styles.billDetailFull]} >Total:${this.billVariables.billTotal==""?0 :this.billVariables.billTotal+""}</Text>
+                </View>
             </View>
         )
         const renderUserContainer = () => (
@@ -927,6 +970,9 @@ const styles = StyleSheet.create({
         borderColor: '#8b0046',
         borderWidth: 3,
         
+    },
+    placeholderText: {
+        color: '#A9A9A9',
     },
     statusBar: {
         justifyContent: 'center',
