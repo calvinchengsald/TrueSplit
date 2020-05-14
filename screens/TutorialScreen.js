@@ -5,6 +5,7 @@ import {Menu, MenuOptions, MenuOption, MenuTrigger, renderers   } from 'react-na
 import {coalesce, isValid  } from '../utility/utils';
 import {Icon} from 'react-native-elements'
 import { sendEmail } from '../components/Email';
+import Constants from 'expo-constants';
 
 const { SlideInMenu } = renderers;
 
@@ -185,6 +186,9 @@ export default class TutorialScreen extends Component {
                     </View>
 
                 </View>
+                <View style={styles.versionRow}>
+                    <Text style={styles.versionText} >v.{Constants.manifest.version}</Text>
+                </View>
             </View>
         )
     }
@@ -267,5 +271,14 @@ const styles = StyleSheet.create({
         flex: 1,
         height: undefined,
         width: undefined,
+    }, 
+    versionRow : {
+        flexDirection: 'row',
+        justifyContent: 'flex-end'
+    },
+    versionText: {
+        textAlign: 'right',
+        fontSize:8,
+        color: '#A9A9A9'
     }
 })
