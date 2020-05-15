@@ -8,6 +8,7 @@
     "eject": "expo eject",
     "builda": "expo build:android",
     "builda-bundle": "expo build:android -t app-bundle",
+    "upload-android": "expo upload:android",
     "buildi": "expo build:ios",
     "publish": "expo publish",
     "test": "cypress open"
