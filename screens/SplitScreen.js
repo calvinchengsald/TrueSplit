@@ -342,7 +342,7 @@ export default class SplitScreen extends Component {
 
         // find status of this calculation:
         var statusInformation = "All calculated."
-        statusInformation = this.findStatusInformation()
+        statusInformation = this.findStatusInformation(statusInformation)
         this.setState({
             billSubtotal:  this.billVariables.billSubtotal,
             billTax:  this.billVariables.billTax,
